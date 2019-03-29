@@ -31,7 +31,7 @@ chumpy (For converting SMPL model to basic numpy arrays)
 ### Current Progress
 Finish UV texture map processing. Here's the result:
 
-![UV_map](SMPL_UV_map.png)
+![UV_map](teaser/SMPL_UV_map.png)
 
 ### Citation
 Please consider citing the following paper if you find this project useful.
