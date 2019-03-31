@@ -11,6 +11,7 @@ CUDA 9.0
 Python 3.6
 PyTorch 1.0.0
 chumpy (For converting SMPL model to basic numpy arrays)
+spacepy, h5py (For processing Human36m cdf annotations)
 ```
 
 (Optional) Install [torch-batched-svd](https://github.com/KinglittleQ/torch-batch-svd) for speedup (Only tested under Ubuntu system).
@@ -19,7 +20,7 @@ chumpy (For converting SMPL model to basic numpy arrays)
 ### TODO List
 - [x] Creating ground truth UV position maps for Human36m dataset.
     - [x] [20190329]() Finish UV data processing.
-    - [ ] [Proceeding] Align SMPL mesh with input image.
+    - [x] [20190331]() Align SMPL mesh with input image.
     - [ ] Generate and save UV position map.
 - [ ] Finish baseline model training
     - [ ] Testing with several new loss functions.
@@ -32,6 +33,11 @@ chumpy (For converting SMPL model to basic numpy arrays)
 Finish UV texture map processing. Here's the result:
 
 ![UV_map](teaser/SMPL_UV_map.png)
+
+Align SMPL mesh with input image. Here's the result:
+
+![Ground Truth Image](teaser/im_gt_0.png)
+![Aligned Mesh Image](teaser/im_mask_0.png)
 
 ### Citation
 Please consider citing the following paper if you find this project useful.

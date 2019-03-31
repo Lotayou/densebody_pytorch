@@ -17,6 +17,7 @@ class SMPLModel(Module):
     self.J_regressor = torch.from_numpy(
       np.array(params['J_regressor'].todense())
     ).type(self.data_type)
+    # 20190330: lsp 14 joint regressor
     self.joint_regressor = torch.from_numpy(
       np.array(params['joint_regressor'].T.todense())
     ).type(self.data_type)
@@ -247,8 +248,8 @@ class SMPLModel(Module):
     result = v + torch.reshape(trans, (batch_num, 1, 3))
     
     # estimate 3D joint locations
-    #joints = torch.tensordot(result, self.joint_regressor, dims=([1], [0])).transpose(1, 2)
-    joints = torch.tensordot(result, self.J_regressor.transpose(0, 1), dims=([1], [0])).transpose(1, 2)
+    joints = torch.tensordot(result, self.joint_regressor, dims=([1], [0])).transpose(1, 2)
+    #joints = torch.tensordot(result, self.J_regressor.transpose(0, 1), dims=([1], [0])).transpose(1, 2)
     return result, joints
 
 
@@ -260,7 +261,7 @@ def test_gpu(data_type=torch.float):
   np.random.seed(9608)
   model = SMPLModel(
                     device=device,
-                    model_path = './model_24_joints.pkl',
+                    model_path = './model.pkl',
                     data_type=data_type,
                     simplify=True
                     )
