@@ -11,6 +11,7 @@ CUDA 9.0
 Python 3.6
 PyTorch 1.0.0
 chumpy (For converting SMPL model to basic numpy arrays)
+spacepy, h5py (For processing Human36m cdf annotations)
 ```
 
 (Optional) Install [torch-batched-svd](https://github.com/KinglittleQ/torch-batch-svd) for speedup (Only tested under Ubuntu system).

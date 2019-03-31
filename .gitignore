@@ -107,6 +107,7 @@ venv.bak/
 unit_tests/
 checkpoints/
 results/
+data_utils/_test_cache/
 *.obj
 *.pth
 *.pkl

@@ -1,6 +1,7 @@
 import numpy as np
 from skimage.io import imread, imsave
 from skimage.draw import polygon_perimeter as pope
+import pickle
 
 class UV_Texture_Parser():
     def __init__(self):
@@ -45,8 +46,16 @@ class UV_Texture_Parser():
                 
         self.faces = np.vstack(faces).astype(np.int32) - 1
         
-    def save_UV_data(self, out_pickle_name):
-        pass
+    def save_UV_data(self, out_pickle_name='SMPL_UV_map.pickle'):
+        if self.faces is None:
+            print('Cyka Blyat: Load an obj file first!')
+        
+        tmp_dict = {
+            'uv_vertices': self.vts,
+            'faces': self.faces
+        }
+        with open(out_pickle_name, 'wb') as w:
+            pickle.dump(tmp_dict, w)
         
     def render_UV_map(self, image_name, size=1024):
         # Just draw each edge twice, no biggie
@@ -65,3 +74,4 @@ if __name__ == '__main__':
     parser = UV_Texture_Parser()
     parser.parse_obj('SMPL_template_UV_map.obj')
     parser.render_UV_map('SMPL_UV_map.png')
+    parser.save_UV_data()
