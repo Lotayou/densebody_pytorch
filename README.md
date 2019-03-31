@@ -35,7 +35,9 @@ Finish UV texture map processing. Here's the result:
 ![UV_map](teaser/SMPL_UV_map.png)
 
 Align SMPL mesh with input image. Here's the result:
-![Ground Truth Image](teaser/im_gt_0.png) ![Aligned Mesh Image](teaser/im_mask_0.png)
+
+![Ground Truth Image](teaser/im_gt_0.png)
+![Aligned Mesh Image](teaser/im_mask_0.png)
 
 ### Citation
 Please consider citing the following paper if you find this project useful.
