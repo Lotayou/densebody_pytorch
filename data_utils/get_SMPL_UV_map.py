@@ -88,7 +88,8 @@ class UV_Texture_Parser():
         imsave(image_name, img)
             
 if __name__ == '__main__':
-    parser = UV_Texture_Parser(load_pickle='SMPL_UV_map.pickle')
-    #parser.parse_obj('SMPL_template_UV_map.obj')
+#    parser = UV_Texture_Parser(load_pickle='SMPL_UV_map.pickle')
+    parser = UV_Texture_Parser()
+    parser.parse_obj('SMPL_template_UV_map.obj')
     parser.render_UV_map('SMPL_UV_map.png')
     parser.save_UV_data()

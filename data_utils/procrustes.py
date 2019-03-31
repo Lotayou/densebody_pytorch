@@ -4,6 +4,9 @@ from torch.nn import Module
 import os
 from sys import platform
 
+if platform == 'linux':
+    from batch_svd import batch_svd
+
 '''
     procrustes_3d_to_2d: 
         Align 3D input keypoints to 2D/3D ground truth via Procrustes analysis

@@ -12,15 +12,14 @@ from torch.utils.data import Dataset, DataLoader
 from skimage.io import imread, imsave
 from skimage.draw import circle
 
-if platform == 'linux':
-    from batch_svd import batch_svd
-
 class Human36MDataset(Dataset):
     def __init__(self, smpl, max_item=312188, root_dir=None, 
             annotation='annotation_large.h5', calc_mesh=False):
         super(Human36MDataset, self).__init__()
-        if root_dir is None:
-            root_dir = 'D:/data/human36m'
+        if root_dir is None:            
+            root_dir = '/backup1/lingboyang/data/human36m' \
+                if platform == 'linux' \
+                else 'D:/data/human36m'
             
         self.root_dir = root_dir
         self.calc_mesh = calc_mesh
@@ -106,7 +105,7 @@ def visualize(imagenames, mesh_2d, joints_2d):
     
 def run_test():
     if platform == 'linux':
-        os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+        os.environ['CUDA_VISIBLE_DEVICES'] = '2'
     
     data_type = torch.float32
     device=torch.device('cuda')
