@@ -4,13 +4,16 @@ import pickle
 import h5py
 import torch
 from torch.nn import Module
-from procrustes import map_3d_to_2d
 import os
 import shutil
 from sys import platform
 from torch.utils.data import Dataset, DataLoader
 from skimage.io import imread, imsave
 from skimage.draw import circle
+
+from procrustes import map_3d_to_2d
+from save_texture_map import get_UV_position_map as get_UV
+
 
 class Human36MDataset(Dataset):
     def __init__(self, smpl, max_item=312188, root_dir=None, 
@@ -82,7 +85,6 @@ class Human36MDataset(Dataset):
         return self.length
     
 
-        
 def visualize(imagenames, mesh_2d, joints_2d):
     i = 0
     for name, mesh, joints in zip(imagenames, mesh_2d, joints_2d):
@@ -132,9 +134,12 @@ def run_test():
     
     # Important: mesh should be centered at the origin!
     deformed_meshes = transforms(meshes)
-    mesh_2d = deformed_meshes.detach().cpu().numpy().astype(np.int)[:,:,:2]
-    visualize(data['imagename'], mesh_2d, target_2d.detach().cpu().numpy().astype(np.int))
+    mesh_3d = deformed_meshes.detach().cpu().numpy().astype(np.int)
+    #visualize(data['imagename'], mesh_3d[:,:,:2], target_2d.detach().cpu().numpy().astype(np.int))
     
+    for i, mesh in enumerate(mesh_3d):
+        img = get_UV(mesh, 300)
+        imsave('_test_cache/UV_map_{}.png'.format(i), img)
     
 if __name__ == '__main__':
     run_test()
