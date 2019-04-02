@@ -6,28 +6,7 @@ from time import time
 import os
 from tqdm import tqdm
 from numpy.linalg import solve
-
-#import neural_renderer.cuda.create_texture_image as create_texture_image_cuda
-
-'''
-    im2texture: Get RGB value at each mesh vertex from the given image
-    Parameters:
-    ------------------------------------------------------------
-    im: [N * H * W * 3] numpy array
-    verts: [N * 6890 * 3], aligned mesh coordinates.
-    
-    Output: 
-    ------------------------------------------------------------
-    texture_tensor: [N * 6890 * 3]: rgb values at each vertex
-    
-    Algorithm:
-    ------------------------------------------------------------
-    @ Bilinear Interpolation
-'''
-def im2texture(im, verts):
-    texture_tensor = torch.zeros_like(verts)
-    return texture_tensor
-    
+from scipy.interpolate import RectBivariateSpline as RBS
     
 '''
     get_barycentric_info: for a given uv vertice position,
@@ -41,16 +20,26 @@ def im2texture(im, verts):
     
     Output: 
     ------------------------------------------------------------
-    bary_info: A dictionary containing two items:
-    @ index: [H*W] int tensor where f[i,j] represents
+    bary_dict: A dictionary containing two items, saved as pickle.
+    @ face_id: [H*W] int tensor where f[i,j] represents
         which face the pixel [i,j] is in
         if [i,j] doesn't belong to any face, f[i,j] = -1
-    @ coords: [H*W*3] float tensor of barycentric coordinates 
-        if f[i,j] == -1, then coords[i,j] = [0,0,0]
+    @ bary_weights: [H*W*3] float tensor of barycentric coordinates 
+        if f[i,j] == -1, then w[i,j] = [0,0,0]
         
-    Note: This function could be time consuming, luckily, for our
-    experiments the UV_texture only need to be compute once, so I
-    just stick to CPU implementation.
+    Algorithm:
+    ------------------------------------------------------------
+    The barycentric coordinates are obtained by 
+    solving the following linear equation:
+    
+            [ x1 x2 x3 ][w1]   [x]
+            [ y1 y2 y3 ][w2] = [y]
+            [ 1  1  1  ][w3]   [1]
+    
+    Note: This algorithm is not the fastest but can be easily batchlized.
+    It could take 8~10 minutes on a regular PC. Luckily, for each
+    experiment the bary_info only need to be compute once, so I
+    just stick to the current implementation.
 '''
 def get_barycentric_info(h, w, uvs, faces):
     bc_pickle = 'barycentric_h{:04d}_w{:04d}.pickle'.format(h, w)
@@ -145,6 +134,8 @@ def UV_interp(im, faces, uvs, rgbs):
     #print(im.shape, np.max(im), np.min(im))
     im = np.minimum(np.maximum(im*2.-1., -1.), 1.)
     return im
+    
+    
 '''
     get_UV_position_map: create UV position map from aligned mesh coordinates
     Parameters:
@@ -186,6 +177,26 @@ def get_UV_position_map(verts, height, width=0,
     
     return img
     
+'''
+    Unit test: resample back to 3D coordinates, 
+    see if the human mesh info is preserved
+'''
+def resample(UV_map, vts):
+    h, w, c = UV_map.shape
+    
+    vts *= np.array([[h - 1, w - 1]])
+    vt_3d = np.zeros((vts.shape[0], 3), dtype=vts.dtype)
+    for i in range(c):
+        spline_function = RBS(
+            x=np.arange(h)
+            y=np.arange(w)
+            z=UV_map[:,:,i]
+        )
+        vt_3d[:, i] = spline_function(
+            vts[:, 0], vts[:, 1]
+        )
+    
+    # convert vt back to v (requires v_to_vt index)
     
 if __name__ == '__main__':
     get_UV_position_map(None, 300)

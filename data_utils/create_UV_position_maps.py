@@ -13,6 +13,7 @@ from skimage.draw import circle
 
 from procrustes import map_3d_to_2d
 from save_texture_map import get_UV_position_map as get_UV
+from save_texture_map import resample
 
 
 class Human36MDataset(Dataset):

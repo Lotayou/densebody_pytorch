@@ -22,7 +22,8 @@ spacepy, h5py (For processing Human36m cdf annotations)
     - [x] [20190329]() Finish UV data processing.
     - [x] [20190331]() Align SMPL mesh with input image.
     - [x] [Testing]() Generate and save UV position map.
-        -[x] [Proceeding]() Checking validity through resampling and mesh reconstruction...
+        - [ ] [Proceeding]() Checking validity through resampling and mesh reconstruction...
+        - [ ] Making UV_map generation module a separate class.
     - [ ] Data washing: Image resize to 256*256 and 2D annotation compensation.
     - [ ] Data Preparation.
 - [ ] Finish baseline model training
