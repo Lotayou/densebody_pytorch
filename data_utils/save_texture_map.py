@@ -132,7 +132,8 @@ def UV_interp(im, faces, uvs, rgbs):
     
     im = np.sum(triangle_rgbs * w, axis=2)
     #print(im.shape, np.max(im), np.min(im))
-    im = np.minimum(np.maximum(im*2.-1., -1.), 1.)
+    #im = np.minimum(np.maximum(im*2.-1., -1.), 1.)
+    im = np.minimum(np.maximum(im, 0.), 1.)
     return im
     
     
@@ -146,7 +147,8 @@ def UV_interp(im, faces, uvs, rgbs):
     
     Output: 
     ------------------------------------------------------------
-    UV_map: [H * W * 3] float32 ndarray.
+    UV_map: [H * W * 3] Interpolated UV map.
+    colored_verts: [H * W * 3] Scatter plot of colorized UV vertices
     
 '''
 def get_UV_position_map(verts, height, width=0, 
@@ -158,6 +160,8 @@ def get_UV_position_map(verts, height, width=0,
     # normalize all to [0,1]
     _min = np.amin(verts, axis=0, keepdims=True)
     _max = np.amax(verts, axis=0, keepdims=True)
+    # pay attention to x and y normalization...
+    
     verts -= _min
     verts = verts / (_max - _min)
     #verts = (verts - .5) * 2.
@@ -171,11 +175,17 @@ def get_UV_position_map(verts, height, width=0,
     _vt_to_v = tmp['vt_to_v']
     del tmp
     
-    img = np.zeros((height, width, 3), dtype=np.float32)
+    UV_map = np.zeros((height, width, 3), dtype=np.float32)
     vid = [_vt_to_v[i] for i in range(_vts.shape[0])]
-    img = UV_interp(img, _faces, _vts, verts[vid])
+    UV_map = UV_interp(UV_map, _faces, _vts, verts[vid])  # weird, _vts value should not change...
     
-    return img
+    # basic points color visualization
+    _vts = _vts.astype(np.int)
+    vs = [_vt_to_v[i] for i in range(_vts.shape[0])]
+    UV_scatter = np.zeros((height, width, 3), dtype=np.float32)
+    UV_scatter[_vts[:, 0], _vts[:, 1]] = verts[vs]
+    
+    return UV_map, UV_scatter
     
 '''
     Unit test: resample back to 3D coordinates, 
@@ -188,8 +198,8 @@ def resample(UV_map, vts):
     vt_3d = np.zeros((vts.shape[0], 3), dtype=vts.dtype)
     for i in range(c):
         spline_function = RBS(
-            x=np.arange(h)
-            y=np.arange(w)
+            x=np.arange(h),
+            y=np.arange(w),
             z=UV_map[:,:,i]
         )
         vt_3d[:, i] = spline_function(

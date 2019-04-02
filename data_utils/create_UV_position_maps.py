@@ -139,8 +139,11 @@ def run_test():
     #visualize(data['imagename'], mesh_3d[:,:,:2], target_2d.detach().cpu().numpy().astype(np.int))
     
     for i, mesh in enumerate(mesh_3d):
-        img = get_UV(mesh, 300)
-        imsave('_test_cache/UV_map_{}.png'.format(i), img)
-    
+        UV_position_map, UV_scatter = get_UV(mesh, 300)
+        out = np.concatenate(
+            (UV_position_map, UV_scatter), axis=1
+        )
+        imsave('_test_cache/UV_position_map_{}.png'.format(i), out)
+        
 if __name__ == '__main__':
     run_test()
