@@ -1,6 +1,12 @@
 # densebody_pytorch
 PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org/abs/1903.10153v3)
 
+### Critical Warning
+SMPL UV data downloaded from [official website](http://smpl.is.tue.mpg.de) is a total mess up. Here's the result.
+
+![3d](teaser/3d_color.png)
+
+![2d](teaser/2d_color.png)
 
 ![paper teaser](teaser/teaser.jpg)
 
@@ -50,6 +56,7 @@ Align SMPL meshes with input images. Here are some results:
 
 ### Citation
 Please consider citing the following paper if you find this project useful.
+
 [DenseBody: Directly Regressing Dense 3D Human Pose and Shape From a Single Color Image](https://arxiv.org/abs/1903.10153v3)
 
 ### Disclaimer
