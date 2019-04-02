@@ -109,6 +109,7 @@ checkpoints/
 results/
 data_utils/_test_cache*/
 *.obj
+!data_utils/SMPL_template_UV_map.obj
 *.pth
 *.pkl
 *.xyz
