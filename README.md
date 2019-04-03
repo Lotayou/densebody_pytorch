@@ -23,7 +23,7 @@ spacepy, h5py (For processing Human36m cdf annotations)
     - [x] [Testing]() Generate and save UV position map.
         - [ ] [Proceeding]() Checking validity through resampling and mesh reconstruction...
         - [ ] Making UV_map generation module a separate class.
-    - [ ] Data washing: Image resize to 256*256 and 2D annotation compensation.
+    - [x] [20190403]() Data washing scripts done in `data_utils/data_washing.py`
     - [ ] Data Preparation.
 - [ ] Finish baseline model training
     - [ ] Testing with several new loss functions.
