@@ -1,15 +1,6 @@
 # densebody_pytorch
 PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org/abs/1903.10153v3)
 
-### Critical Warning
-__Anyone help with UV data correction will be deeply appreciated!__
-
-SMPL UV data downloaded from [official website](http://smpl.is.tue.mpg.de) is a total mess up. Here's the result.
-
-![3d](teaser/3d_color.PNG)
-
-![2d](teaser/2d_color.png)
-
 ![paper teaser](teaser/teaser.jpg)
 
 ### Prerequisites
