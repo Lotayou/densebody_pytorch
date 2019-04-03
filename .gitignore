@@ -115,5 +115,5 @@ data_utils/_test_cache*/
 *.xyz
 *.npy
 *.pickle
-
+*.zip
 *idea/

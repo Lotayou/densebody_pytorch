@@ -107,9 +107,9 @@ def get_barycentric_info(h, w, uvs, faces):
             np.ones((F, 1, 3), dtype=uvs.dtype)
         ), axis=1) # [F * 3 * 3]
         
-        # _loop = tqdm(np.arange(h*w), ncols=80)
-        # for i in _loop:
-        for i in range(h*w):
+        _loop = tqdm(np.arange(h*w), ncols=80)
+        for i in _loop:
+        # for i in range(h*w):
             r = i // w
             c = i % w
             grids[:, 0] = r
@@ -189,7 +189,6 @@ def UV_interp(im, faces, uvs, rgbs):
             im[i,j] = (w[i,j,0] * rgbs[t0] + w[i,j,1] * rgbs[t1] + w[i,j,2] * rgbs[t2])
         
     #print(im.shape, np.max(im), np.min(im))
-    #im = np.minimum(np.maximum(im*2.-1., -1.), 1.)
     im = np.minimum(np.maximum(im, 0.), 1.)
     return im
     
