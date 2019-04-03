@@ -105,6 +105,31 @@ def visualize(imagenames, mesh_2d, joints_2d):
         imsave('_test_cache/im_mask_{}.png'.format(i), im)
         i += 1
 
+def write_ply(ply_name, coords, rgbs):
+    if rgbs.max() < 1.000001:
+        rgbs = (rgbs * 255.).astype(np.uint8)
+    
+    with open(ply_name, 'w') as f:
+        # headers
+        f.writelines([
+            'ply\n'
+            'format ascii 1.0\n',
+            'element vertex {}\n'.format(coords.shape[0]),
+            'property float x\n',
+            'property float y\n',
+            'property float z\n',
+            'property uchar red\n',
+            'property uchar green\n',
+            'property uchar blue\n',
+            'end_header\n',
+            ]
+        )
+        
+        for i in range(coords.shape[0]):
+            str = '{:10.6f} {:10.6f} {:10.6f} {:d} {:d} {:d}\n'\
+                .format(coords[i,0],coords[i,1],coords[i,2],
+                    rgbs[i,0], rgbs[i,1], rgbs[i,2])
+            f.write(str)
     
 def run_test():
     if platform == 'linux':
@@ -135,15 +160,34 @@ def run_test():
     
     # Important: mesh should be centered at the origin!
     deformed_meshes = transforms(meshes)
-    mesh_3d = deformed_meshes.detach().cpu().numpy().astype(np.int)
-    #visualize(data['imagename'], mesh_3d[:,:,:2], target_2d.detach().cpu().numpy().astype(np.int))
+    mesh_3d = deformed_meshes.detach().cpu().numpy()
+    # visualize(data['imagename'], mesh_3d[:,:,:2].astype(np.int), 
+    #    target_2d.detach().cpu().numpy().astype(np.int))
     
     for i, mesh in enumerate(mesh_3d):
-        UV_position_map, UV_scatter = get_UV(mesh, 300)
+        model.write_obj(
+            mesh, 
+            '_test_cache/real_mesh_{}.obj'.format(i)
+        )   # weird.
+        
+        UV_position_map, UV_scatter, rgbs_backup = get_UV(mesh, 300)
+        
+        # write colorized coordinates to ply
+        write_ply('_test_cache/colored_mesh_{}.ply'.format(i), mesh, rgbs_backup)
+        
         out = np.concatenate(
             (UV_position_map, UV_scatter), axis=1
         )
+        
         imsave('_test_cache/UV_position_map_{}.png'.format(i), out)
+        resampled_mesh = resample(UV_position_map)
+        
+        model.write_obj(
+            resampled_mesh, 
+            '_test_cache/recon_mesh_{}.obj'.format(i)
+        )
+        
+        ### Calculate reprojection error
         
 if __name__ == '__main__':
     run_test()

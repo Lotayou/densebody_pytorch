@@ -5,8 +5,9 @@ import pickle
 
 class UV_Texture_Parser():
     def __init__(self, load_pickle=None):
-        self.vt_num = -1
-        self.face_num = -1
+        self.v_num = 6890
+        self.vt_num = 7571
+        self.face_num = 13776
         self.obj_name = None
         self.vts = None
         self.faces = None
@@ -46,6 +47,10 @@ class UV_Texture_Parser():
         # f v1/vt1/vn1 v1/vt1/vn1 v1/vt1/vn1
         faces = []
         self.vt_to_v = {}
+        self.v_to_vt = [None] * self.v_num
+        for i in range(self.v_num):
+            self.v_to_vt[i] = set()
+        
         for line in lines:
             if line.split()[0] == 'f':
                 vs = line.split()
@@ -59,6 +64,9 @@ class UV_Texture_Parser():
                 self.vt_to_v[vt0] = v0
                 self.vt_to_v[vt1] = v1
                 self.vt_to_v[vt2] = v2
+                self.v_to_vt[v0].add(vt0)
+                self.v_to_vt[v1].add(vt1)
+                self.v_to_vt[v2].add(vt2)
                 
         self.faces = np.vstack(faces)
         
@@ -69,7 +77,8 @@ class UV_Texture_Parser():
         tmp_dict = {
             'vts': self.vts,
             'faces': self.faces,
-            'vt_to_v': self.vt_to_v
+            'vt_to_v': self.vt_to_v,
+            'v_to_vt': self.v_to_vt,
         }
         with open(out_pickle_name, 'wb') as w:
             pickle.dump(tmp_dict, w)
