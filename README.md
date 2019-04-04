@@ -3,6 +3,12 @@ PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org
 
 ![paper teaser](teaser/teaser.jpg)
 
+### Update Notes
+Thanks for the contribution of this [PR](https://github.com/Lotayou/densebody_pytorch/pull/6) commited by [radvani](https://github.com/radvani), the SMPL UV map color inconsistency issue is now solved. Meanwhile I will be working on the transformation of some core algorithms from numpy to torch, as well as performing necessary code reformatting and unit tests to eliminate any potential errors. It may take a few days, but I'm sure it will be worthwhile.
+
+The upcoming project will feature more concise user interfaces and better class organizations, stay tuned for more update. 
+For those who already forked my project, the original code is now temporarily hosted in the `legacy` branch, and will be removed after the code reformatting is complete.
+
 ### Prerequisites
 ```
 Ubuntu 18.04
@@ -20,11 +26,11 @@ spacepy, h5py (For processing Human36m cdf annotations)
 - [x] Creating ground truth UV position maps for Human36m dataset.
     - [x] [20190329]() Finish UV data processing.
     - [x] [20190331]() Align SMPL mesh with input image.
+    - [x] [20190404]() Data washing: Image resize to 256*256 and 2D annotation compensation.
     - [x] [Testing]() Generate and save UV position map.
         - [ ] [Proceeding]() Checking validity through resampling and mesh reconstruction...
         - [ ] Making UV_map generation module a separate class.
-    - [ ] Data washing: Image resize to 256*256 and 2D annotation compensation.
-    - [ ] Data Preparation.
+    
 - [ ] Finish baseline model training
     - [ ] Testing with several new loss functions.
     - [ ] Testing with different networks.
