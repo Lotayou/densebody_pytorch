@@ -86,7 +86,6 @@ class UV_Texture_Parser():
             pickle.dump(tmp_dict, w)
         
     def render_UV_map(self, image_name, size=1024):
-        # Just draw each edge twice, no biggie
         if self.vt_faces is None:
             print('Cyka Blyat: Load an obj file first!')
         

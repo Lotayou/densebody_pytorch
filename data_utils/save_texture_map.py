@@ -8,82 +8,6 @@ from tqdm import tqdm
 from numpy.linalg import solve
 from scipy.interpolate import RectBivariateSpline as RBS
     
-def get_point_weight(p, tp):
-    ''' Get the weights of the position
-    Methods: https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
-     -m1.compute the area of the triangles formed by embedding the point P inside the triangle
-     -m2.Christer Ericson's book "Real-Time Collision Detection". faster, so I used this.
-    Args:
-        point: [2]
-        tri_points: [2 * 3]
-    Returns:
-        w0: weight of v0
-        w1: weight of v1
-        w2: weight of v3
-     '''
-    #if p.ndim == 1:
-        #p = p[np.newaxis]
-    # vectors
-    v0 = tp[:,2] - tp[:,0]
-    v1 = tp[:,1] - tp[:,0]
-    v2 = p - tp[:,0]
-
-    # dot products
-    dot00 = np.dot(v0.T, v0)
-    dot01 = np.dot(v0.T, v1)
-    dot02 = np.dot(v0.T, v2)
-    dot11 = np.dot(v1.T, v1)
-    dot12 = np.dot(v1.T, v2)
-
-    # barycentric coordinates
-    if dot00*dot11 - dot01*dot01 == 0:
-        inverDeno = 0
-    else:
-        inverDeno = 1/(dot00*dot11 - dot01*dot01)
-
-    u = (dot11*dot02 - dot01*dot12)*inverDeno
-    v = (dot00*dot12 - dot01*dot02)*inverDeno
-
-    w0 = 1 - u - v
-    w1 = v
-    w2 = u
-
-    return w0, w1, w2
-    
-    
-'''
-    get_barycentric_info: for a given uv vertice position,
-    return the berycentric information for all pixels
-    
-    Parameters:
-    ------------------------------------------------------------
-    h, w: image size
-    faces: [F * 3], triangle pieces represented with UV vertices.
-    uvs: [N * 2] UV coordinates on texture map, scaled with h & w
-    
-    Output: 
-    ------------------------------------------------------------
-    bary_dict: A dictionary containing two items, saved as pickle.
-    @ face_id: [H*W] int tensor where f[i,j] represents
-        which face the pixel [i,j] is in
-        if [i,j] doesn't belong to any face, f[i,j] = -1
-    @ bary_weights: [H*W*3] float tensor of barycentric coordinates 
-        if f[i,j] == -1, then w[i,j] = [0,0,0]
-        
-    Algorithm:
-    ------------------------------------------------------------
-    The barycentric coordinates are obtained by 
-    solving the following linear equation:
-    
-            [ x1 x2 x3 ][w1]   [x]
-            [ y1 y2 y3 ][w2] = [y]
-            [ 1  1  1  ][w3]   [1]
-    
-    Note: This algorithm is not the fastest but can be easily batchlized.
-    It could take 8~10 minutes on a regular PC. Luckily, for each
-    experiment the bary_info only need to be compute once, so I
-    just stick to the current implementation.
-'''
 def get_barycentric_info(h, w, uvs, faces):
     bc_pickle = 'barycentric_h{:04d}_w{:04d}.pickle'.format(h, w)
     if os.path.isfile(bc_pickle):
@@ -95,9 +19,6 @@ def get_barycentric_info(h, w, uvs, faces):
         print('Bary info cache not found, start calculating...' 
             + '(This could take a few minutes)')
         s = time()
-        
-        # 20190401 direct calculation impossible, too memory heavy
-        
         F = faces.shape[0]
         face_id = np.zeros((h, w), dtype=np.int)
         bary_weights = np.zeros((h, w, 3), dtype=np.float32)
@@ -197,7 +118,7 @@ def UV_interp(im, faces, uvs, rgbs):
     get_UV_position_map: create UV position map from aligned mesh coordinates
     Parameters:
     ------------------------------------------------------------
-    verts: [6890 * 3], aligned mesh coordinates.
+    verts: [V * 3], aligned mesh coordinates.
     height, width: result UV map size.
     UV_data_pickle: pickle file that specifies UV texture map coordinates.
     
@@ -208,7 +129,7 @@ def UV_interp(im, faces, uvs, rgbs):
     
 '''
 def get_UV_position_map(verts, height, width=0, 
-        UV_data_pickle='SMPL_UV_map.pickle'):
+        UV_data_pickle='SMPL_template_UV_map.pickle'):
         
     if width == 0:
         width = height
@@ -260,74 +181,7 @@ def get_UV_position_map(verts, height, width=0,
     
     return UV_map, UV_scatter, rgbs_backup
     
-'''
-    Unit test: resample back to 3D coordinates, 
-    see if the human mesh info is preserved
-'''
-def resample(UV_map, UV_data_pickle='SMPL_UV_map.pickle'):
-    h, w, c = UV_map.shape
-    
-    f = open(UV_data_pickle, 'rb')
-    tmp = pickle.load(f)
-    f.close()
-    vts = tmp['vts']
-    v_to_vt = tmp['v_to_vt']
-    del tmp
-    
-    vts *= np.array([[h - 1, w - 1]])
-    vt_3d = np.zeros((vts.shape[0], 3), dtype=vts.dtype)
-    '''
-    vts = vts.astype(np.int)
-    vt_3d = np.stack([
-        UV_map[vts[i,0], vts[i,1]]
-        for i in range(vts.shape[0])
-    ], axis=0)
-    '''
-    # 20190402: Bug: some uv vertices are out of bound
-    # inside nearest...
-    
-    bc_pickle = 'barycentric_h{:04d}_w{:04d}.pickle'.format(h, w)
-    if os.path.isfile(bc_pickle):
-        print('Find cached pickle file...')
-        with open(bc_pickle, 'rb') as rf:
-            bary_info = pickle.load(rf)
-            bid = bary_info['face_id']
-    
-    vts = vts.astype(np.int)
-    for i in range(vts.shape[0]):
-        neighbors = [
-            (vts[i, 0], vts[i, 1]),
-            (vts[i, 0], vts[i, 1]+1),
-            (vts[i, 0]+1, vts[i, 1]),
-            (vts[i, 0]+1, vts[i, 1]+1),
-        ]
-        
-        for nb in neighbors:
-            if bid[nb[0], nb[1]] > 0:
-                vt_3d[i] = UV_map[nb[0], nb[1]]
-                break
-                
-    
-    '''
-    for i in range(c):
-        spline_function = RBS(
-            x=np.arange(h),
-            y=np.arange(w),
-            z=UV_map[:,:,i]
-        )
-        vt_3d[:, i] = spline_function(
-            vts[:, 0], vts[:, 1], grid=False
-        )
-    '''
-    
-    
-    # convert vt back to v (requires v_to_vt index)
-    cyka_v_3d = [None] * len(v_to_vt)
-    for i in range(len(v_to_vt)):
-        cyka_v_3d[i] = np.mean(vt_3d[list(v_to_vt[i])], axis=0)
-    
-    cyka_v_3d = np.array(cyka_v_3d)
-    return cyka_v_3d
+
     
 if __name__ == '__main__':
     get_UV_position_map(None, 300)
