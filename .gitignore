@@ -117,3 +117,5 @@ data_utils/_test_cache*/
 *.pickle
 *.zip
 *idea/
+*_unit_test.py
+data_utils/_test*/
