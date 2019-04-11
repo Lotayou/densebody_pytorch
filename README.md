@@ -54,12 +54,13 @@ Align SMPL meshes with input images. Here are some results:
 ![Aligned Mesh Image](teaser/im_mask_1.png)
 ![Generated UV map](teaser/UV_position_map_1.png)
 
-Reconstruct human mesh through resampling. Here are some results:
-![Original Mesh](original_mesh_0.PNG)
-![Reconstructed Mesh](resampled_mesh_0.PNG)
+Reconstruct human mesh through resampling. Here are some results. Currently we simply use the nearest neighbor resampling to retrieve the  3D coordinates of mesh vertices, thus lead to some "thorn" like artifacts when the corresponding UV coord is outside the colored region. This could be resolved by dialating the UV map for 1-2 pixels before resampling.
 
-![Original Mesh](original_mesh_0.PNG)
-![Reconstructed Mesh](resampled_mesh_1.PNG)
+![Original Mesh](teaser/original_mesh_0.PNG)
+![Reconstructed Mesh](teaser/resampled_mesh_0.PNG)
+
+![Original Mesh](teaser/original_mesh_1.PNG)
+![Reconstructed Mesh](teaser/resampled_mesh_1.PNG)
 
 
 ### Citation
