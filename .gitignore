@@ -118,3 +118,4 @@ data_utils/_test_cache*/
 *.zip
 *idea/
 *_unit_test.py
+data_utils/_test*/

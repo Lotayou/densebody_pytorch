@@ -88,37 +88,35 @@ class UV_Map_Generator():
         # Store the texcoord faces and a mapping from texcoord faces
         # to vertex faces
         vt_faces = []
-        self.vt_to_v_face = {}
+        self.vt_to_v = {}
+        self.v_to_vt = [None] * self.vertices.shape[0]
+        for i in range(self.vertices.shape[0]):
+            self.v_to_vt[i] = set()
         
-        vt_to_v = {}
-
         for line in lines:
-            if line.split()[0] == 'f':
-                vs = line.split()
+            vs = line.split()
+            if vs[0] == 'f':
                 v0 = int(vs[1].split('/')[0]) - 1
                 v1 = int(vs[2].split('/')[0]) - 1
                 v2 = int(vs[3].split('/')[0]) - 1
-                
                 vt0 = int(vs[1].split('/')[1]) - 1
                 vt1 = int(vs[2].split('/')[1]) - 1
                 vt2 = int(vs[3].split('/')[1]) - 1
-                
                 vt_faces.append((vt0, vt1, vt2))
-                self.vt_to_v_face[(vt0, vt1, vt2)] = (v0, v1, v2)
-        
-                for v, vt in zip([v0, v1, v2],[vt0,vt1,vt2]):
-                    if vt not in vt_to_v:
-                        vt_to_v[vt] = v
-        
-
+                self.vt_to_v[vt0] = v0
+                self.vt_to_v[vt1] = v1
+                self.vt_to_v[vt2] = v2
+                self.v_to_vt[v0].add(vt0)
+                self.v_to_vt[v1].add(vt1)
+                self.v_to_vt[v2].add(vt2)
+                
         self.vt_faces = np.vstack(vt_faces)
-        self.vt_to_v = vt_to_v
         tmp_dict = {
             'vertices': self.vertices,
             'texcoords': self.texcoords,
             'vt_faces': self.vt_faces,
-            'vt_to_v_face': self.vt_to_v_face,
-            'vt_to_v': self.vt_to_v
+            'vt_to_v': self.vt_to_v,
+            'v_to_vt': self.v_to_vt
         }
         with open(cache_file, 'wb') as w:
             pickle.dump(tmp_dict, w)
@@ -221,28 +219,48 @@ class UV_Map_Generator():
         if verts is None:
             verts = self.vertices
         if rgbs is None:
-            print('Warning: rgb not specified, use normalized 3d coords instead...')
+            #print('Warning: rgb not specified, use normalized 3d coords instead...')
             v_min = np.amin(verts, axis=0, keepdims=True)
             v_max = np.amax(verts, axis=0, keepdims=True)
             rgbs = (verts - v_min) / (v_max - v_min)
-            
-        img = np.zeros((self.h, self.w, 3), dtype=np.float)
-        uvs = self.texcoords * np.array([[self.h - 1, self.w - 1]])
-        for face in self.vt_faces:
-            vt0, vt1, vt2 = face
-            v0, v1, v2 = self.vt_to_v_face[(vt0, vt1, vt2)]
-            
-            vertices = (rgbs[v0], rgbs[v1], rgbs[v2])
-            texcoords = (uvs[vt0], uvs[vt1], uvs[vt2])
         
-            for i in range(len(texcoords)):
-                texcoord = texcoords[i]
-                img[int(texcoord[0]), int(texcoord[1])] = vertices[i] 
+        vt_id = [self.vt_to_v[i] for i in range(self.texcoords.shape[0])]
+        img = np.zeros((self.h, self.w, 3), dtype=rgbs.dtype)
+        uvs = (self.texcoords * np.array([[self.h - 1, self.w - 1]])).astype(np.int)
+        
+        img[uvs[:, 0], uvs[:, 1]] = rgbs[vt_id]
         
         if img_name is not None:
             imsave(img_name, img)
             
         return img, verts, rgbs
+        
+    # def render_point_cloud(self, img_name=None, verts=None, rgbs=None):
+        # if verts is None:
+            # verts = self.vertices
+        # if rgbs is None:
+            # print('Warning: rgb not specified, use normalized 3d coords instead...')
+            # v_min = np.amin(verts, axis=0, keepdims=True)
+            # v_max = np.amax(verts, axis=0, keepdims=True)
+            # rgbs = (verts - v_min) / (v_max - v_min)
+            
+        # img = np.zeros((self.h, self.w, 3), dtype=np.float)
+        # uvs = self.texcoords * np.array([[self.h - 1, self.w - 1]])
+        # for face in self.vt_faces:
+            # vt0, vt1, vt2 = face
+            # v0, v1, v2 = self.vt_to_v_face[(vt0, vt1, vt2)]
+            
+            # vertices = (rgbs[v0], rgbs[v1], rgbs[v2])
+            # texcoords = (uvs[vt0], uvs[vt1], uvs[vt2])
+        
+            # for i in range(len(texcoords)):
+                # texcoord = texcoords[i]
+                # img[int(texcoord[0]), int(texcoord[1])] = vertices[i] 
+        
+        # if img_name is not None:
+            # imsave(img_name, img)
+            
+        # return img, verts, rgbs
         
     def render_UV_atlas(self, image_name, size=1024):
         if self.vt_faces is None:
@@ -358,8 +376,8 @@ class UV_Map_Generator():
     '''
     def resample(self, UV_map):
         h, w, c = UV_map.shape
-        
-        vt_3d = np.zeros((vts.shape[0], 3), dtype=vts.dtype)
+        uvs = self.texcoords * np.array([[self.h - 1, self.w - 1]])
+        vt_3d = np.zeros((uvs.shape[0], 3), dtype=uvs.dtype)
         '''
         vts = vts.astype(np.int)
         vt_3d = np.stack([
@@ -367,17 +385,7 @@ class UV_Map_Generator():
             for i in range(vts.shape[0])
         ], axis=0)
         '''
-        # 20190402: Bug: some uv vertices are out of bound
-        # inside nearest...
-        
-        bc_pickle = 'barycentric_h{:04d}_w{:04d}.pickle'.format(h, w)
-        if os.path.isfile(bc_pickle):
-            print('Find cached pickle file...')
-            with open(bc_pickle, 'rb') as rf:
-                bary_info = pickle.load(rf)
-                bid = bary_info['face_id']
-        
-        vts = vts.astype(np.int)
+        vts = uvs.astype(np.int)
         for i in range(vts.shape[0]):
             neighbors = [
                 (vts[i, 0], vts[i, 1]),
@@ -387,27 +395,14 @@ class UV_Map_Generator():
             ]
             
             for nb in neighbors:
-                if bid[nb[0], nb[1]] > 0:
+                if self.bary_id[nb[0], nb[1]] > 0:
                     vt_3d[i] = UV_map[nb[0], nb[1]]
                     break
-                    
-        
-        '''
-        for i in range(c):
-            spline_function = RBS(
-                x=np.arange(h),
-                y=np.arange(w),
-                z=UV_map[:,:,i]
-            )
-            vt_3d[:, i] = spline_function(
-                vts[:, 0], vts[:, 1], grid=False
-            )
-        '''
         
         # convert vt back to v (requires v_to_vt index)
-        cyka_v_3d = [None] * len(v_to_vt)
-        for i in range(len(v_to_vt)):
-            cyka_v_3d[i] = np.mean(vt_3d[list(v_to_vt[i])], axis=0)
+        cyka_v_3d = [None] * len(self.v_to_vt)
+        for i in range(len(self.v_to_vt)):
+            cyka_v_3d[i] = np.mean(vt_3d[list(self.v_to_vt[i])], axis=0)
         
         cyka_v_3d = np.array(cyka_v_3d)
         return cyka_v_3d
@@ -415,23 +410,15 @@ class UV_Map_Generator():
         
 if __name__ == '__main__':
     # test render module
-    file_prefix = 'SMPL_UV_map_from_fbx_sdk'
-    #file_prefix = 'SMPL_UV_map'
+    file_prefix = 'radvani_template'
     generator = UV_Map_Generator(
         UV_height=300,
         UV_pickle=file_prefix+'.pickle'
     )
-    test_folder = '_test_cache_new'
+    test_folder = '_test_radvani'
     if not os.path.isdir(test_folder):
         os.makedirs(test_folder)
         
     generator.render_UV_atlas('{}/{}_atlas.png'.format(test_folder, file_prefix))
     img, verts, rgbs = generator.render_point_cloud('{}/{}.png'.format(test_folder, file_prefix))
     verts, rgbs = generator.write_ply('{}/{}.ply'.format(test_folder, file_prefix), verts, rgbs)
-    '''
-    weird_rgbs = np.ones_like(rgbs)
-    for i in [4085, 4088, 4107, 4108, 4109]:
-        weird_rgbs[i] = [1., 0., 0.]
-        
-    generator.write_ply('{}/{}_weird.ply'.format(test_folder, file_prefix), verts, weird_rgbs)
-    '''
