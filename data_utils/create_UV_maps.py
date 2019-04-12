@@ -6,10 +6,11 @@ import torch
 from torch.nn import Module
 import os
 import shutil
+from tqdm import tqdm
 from time import time
 from sys import platform
 from torch.utils.data import Dataset, DataLoader
-from skimage.io import imread, imsave
+from cv2 import imread, imwrite
 from skimage.draw import circle
 
 from procrustes import map_3d_to_2d
@@ -95,7 +96,7 @@ def visualize(folder, imagenames, mesh_2d, joints_2d):
             rr, cc = circle(height - j2d[1], j2d[0], 2, shape)
             im[rr, cc] = [255, 0, 0]
             
-        imsave('{}/im_mask_{}.png'.format(folder, i), im)
+        imwrite('{}/im_mask_{}.png'.format(folder, i), im)
         i += 1
 
     
@@ -114,10 +115,10 @@ def run_test():
             model_path = './model_lsp.pkl',
             data_type=data_type,
         )
-    dataset = Human36MWashedDataset(model, max_item=100, calc_mesh=True)
+    dataset = Human36MWashedDataset(model, calc_mesh=True)
     
     # generate mesh, align with 14 point ground truth
-    case_num = 100
+    case_num = 200
     data = dataset[:case_num]
     meshes = data['meshes']
     input = data['lsp_joints']
@@ -144,8 +145,10 @@ def run_test():
        # target_2d.detach().cpu().numpy().astype(np.int))
     
     s=time()
-    UV_position_maps = [None] * case_num
-    for i, mesh in enumerate(mesh_3d):
+    #UV_position_maps = [None] * case_num
+    _loop = tqdm(range(dataset.length), ncols=80)
+    for i in _loop:
+        mesh = mesh_3d[i]
         '''
         model.write_obj(
             mesh, 
@@ -154,7 +157,7 @@ def run_test():
         '''
         UV_position_map, verts_backup = \
             generator.get_UV_map(mesh)
-        UV_position_maps[i] = UV_position_map
+        imwrite('{}/UV_{}.png'.format(test_folder, i), (UV_position_map * 255).astype(np.uint8))
         
         # write colorized coordinates to ply
         '''
@@ -178,8 +181,7 @@ def run_test():
             '{}/recon_mesh_{}.obj'.format(test_folder, i)
         )
         '''
-    UV_position_maps = np.stack(UV_position_maps, axis=0)
-    np.savez('{}/UV_position_maps.npy'.format(test_folder), UV_position_maps)
+    #UV_position_maps = np.stack(UV_position_maps, axis=0)
     print('{} cases for {}s' .format(case_num, time()-s))
 
 if __name__ == '__main__':

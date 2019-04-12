@@ -6,7 +6,8 @@ from torch.nn import Module
 import os
 import shutil
 from sys import platform
-from skimage.io import imread, imsave
+#from skimage.io import imread, imsave
+from cv2 import imread, imwrite
 from skimage.transform import resize
 from skimage.draw import circle
 from tqdm import tqdm
@@ -175,7 +176,8 @@ class DataWasher():
                 img, self.gt2d[i, :, :2]
             )
             '''
-            imsave(target_folder + name, img)
+            #imsave(target_folder + name, img)
+            imwrite(target_folder + name, (img*255).astype(np.uint8))
         
         keep_list = ['gt2d', 'gt3d', 'imagename', 'pose', 'shape']
         f = open(target_folder + '/' + annotation_pickle, 'wb')
