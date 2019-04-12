@@ -10,12 +10,14 @@ PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org
 
 ### Prerequisites
 ```
-Ubuntu 18.04
-CUDA 9.0
+Windows 10 / Ubuntu 18.04
+CUDA 9.0 / 9.1
 Python 3.6
 PyTorch 1.0.0
+opencv-python
+tqdm
 chumpy (For converting SMPL model to basic numpy arrays)
-spacepy, h5py (For processing Human36m cdf annotations)
+h5py (For processing Human36m cdf annotations)
 ```
 
 (Optional) Install [torch-batched-svd](https://github.com/KinglittleQ/torch-batch-svd) for speedup (Only tested under Ubuntu system).
@@ -30,11 +32,13 @@ spacepy, h5py (For processing Human36m cdf annotations)
         - [x] [radvani](https://github.com/radvani) Hand parsed new 3D UV data
         - [x] Validity checked with minor artifacts (see results below)
         - [x] Making UV_map generation module a separate class.
-    - [ ] [Proceeding] Prepare ground truth UV maps for washed dataset.
+    - [x] [Proceeding]() Prepare ground truth UV maps for washed dataset.
     
-- [ ] Finish baseline model training
+- [x] Prepare baseline model training
+    - [ ] [Proceeding]() Network design, configs, trainer and dataloader
     - [ ] Testing with several new loss functions.
     - [ ] Testing with different networks.
+ 
 - [ ] Report 3D reconstruction results.
     - [ ] Setup evaluation protocal and MPJPE-PA metrics.
 
@@ -54,7 +58,7 @@ Align SMPL meshes with input images. Here are some results:
 ![Aligned Mesh Image](teaser/im_mask_1.png)
 ![Generated UV map](teaser/UV_position_map_1.png)
 
-Reconstruct human mesh through resampling. Here are some results. Currently we simply use the nearest neighbor resampling to retrieve the  3D coordinates of mesh vertices, thus lead to some "thorn" like artifacts when the corresponding UV coord is outside the colored region. This could be resolved by dialating the UV map for 1-2 pixels before resampling.
+Reconstruct human mesh through resampling. Here are some results.
 
 ![Original Mesh](teaser/original_mesh_0.PNG)
 ![Reconstructed Mesh](teaser/resampled_mesh_0.PNG)
