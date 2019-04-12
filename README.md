@@ -3,6 +3,11 @@ PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org
 
 ![paper teaser](teaser/teaser.jpg)
 
+### Update Notes
+- Code reformating complete! Please refer to `data_utils/UV_map_generator.py` for more details.
+- Thanks [Raj Advani](https://github.com/radvani) for providing new hand crafted UV maps!
+- For those who already forked my project, the original code is now temporarily hosted in the `legacy` branch, and will be removed after the code reformatting is complete.
+
 ### Prerequisites
 ```
 Ubuntu 18.04
@@ -20,11 +25,13 @@ spacepy, h5py (For processing Human36m cdf annotations)
 - [x] Creating ground truth UV position maps for Human36m dataset.
     - [x] [20190329]() Finish UV data processing.
     - [x] [20190331]() Align SMPL mesh with input image.
-    - [x] [Testing]() Generate and save UV position map.
-        - [ ] [Proceeding]() Checking validity through resampling and mesh reconstruction...
-        - [ ] Making UV_map generation module a separate class.
-    - [x] [20190403]() Data washing scripts done in `data_utils/data_washing.py`
-    - [ ] Data Preparation.
+    - [x] [20190404]() Data washing: Image resize to 256*256 and 2D annotation compensation.
+    - [x] [20190411]() Generate and save UV position map.
+        - [x] [radvani](https://github.com/radvani) Hand parsed new 3D UV data
+        - [x] Validity checked with minor artifacts (see results below)
+        - [x] Making UV_map generation module a separate class.
+    - [ ] [Proceeding] Prepare ground truth UV maps for washed dataset.
+    
 - [ ] Finish baseline model training
     - [ ] Testing with several new loss functions.
     - [ ] Testing with different networks.
@@ -35,7 +42,7 @@ spacepy, h5py (For processing Human36m cdf annotations)
 ### Current Progress
 Finish UV texture map processing. Here's the result:
 
-![UV_map](teaser/SMPL_UV_map.png)
+![UV_map](teaser/radvani_template_atlas.png)
 
 Align SMPL meshes with input images. Here are some results:
 
@@ -46,6 +53,15 @@ Align SMPL meshes with input images. Here are some results:
 ![Ground Truth Image](teaser/im_gt_1.png)
 ![Aligned Mesh Image](teaser/im_mask_1.png)
 ![Generated UV map](teaser/UV_position_map_1.png)
+
+Reconstruct human mesh through resampling. Here are some results. Currently we simply use the nearest neighbor resampling to retrieve the  3D coordinates of mesh vertices, thus lead to some "thorn" like artifacts when the corresponding UV coord is outside the colored region. This could be resolved by dialating the UV map for 1-2 pixels before resampling.
+
+![Original Mesh](teaser/original_mesh_0.PNG)
+![Reconstructed Mesh](teaser/resampled_mesh_0.PNG)
+
+![Original Mesh](teaser/original_mesh_1.PNG)
+![Reconstructed Mesh](teaser/resampled_mesh_1.PNG)
+
 
 ### Citation
 Please consider citing the following paper if you find this project useful.
