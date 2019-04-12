@@ -45,10 +45,12 @@ class UV_Map_Generator():
                 bary_info = pickle.load(rf)
                 self.bary_id = bary_info['face_id']
                 self.bary_weights = bary_info['bary_weights']
+                self.edge_dict = bary_info['edge_dict']
+                
         else:
             print('Bary info cache not found, start calculating...' 
                 + '(This could take a few minutes)')
-            self.bary_id, self.bary_weights = \
+            self.bary_id, self.bary_weights, self.edge_dict = \
                 self._calc_bary_info(self.h, self.w, self.vt_faces.shape[0])
     
     #####################
@@ -122,7 +124,7 @@ class UV_Map_Generator():
             pickle.dump(tmp_dict, w)
             
     '''
-    get_barycentric_info: for a given uv vertice position,
+    _calc_bary_info: for a given uv vertice position,
     return the berycentric information for all pixels
     
     Parameters:
@@ -133,12 +135,15 @@ class UV_Map_Generator():
     
     Output: 
     ------------------------------------------------------------
-    bary_dict: A dictionary containing two items, saved as pickle.
+    bary_dict: A dictionary containing three items, saved as pickle.
     @ face_id: [H*W] int tensor where f[i,j] represents
         which face the pixel [i,j] is in
         if [i,j] doesn't belong to any face, f[i,j] = -1
     @ bary_weights: [H*W*3] float tensor of barycentric coordinates 
         if f[i,j] == -1, then w[i,j] = [0,0,0]
+    @ edge_dict: {(u,v):n} dict where (u,v) indicates the pixel to 
+        dilate, with n being non-zero neighbors within 8-neighborhood
+        
         
     Algorithm:
     ------------------------------------------------------------
@@ -179,26 +184,61 @@ class UV_Map_Generator():
             index = np.where(inside == True)[0]
             
             if 0 == index.size:
-                face_id[r,c] = 0  # just assign random id with all zero weights.
+                face_id[r,c] = -1  # just assign random id with all zero weights.
             #elif index.size > 1:
             #    print('bad %d' %i)
             else:
                 face_id[r,c] = index[0]
                 bary_weights[r,c] = weights[index[0]]
-                
+
+        # calculate counter pixels for UV_map dilation
+        _mask = np.where(face_id == -1, 0, 1)
+        edge_dict = {}
+        _loop = _loop = tqdm(np.arange((h-2)*(w-2)), ncols=80)
+        for l in _loop:
+            i = l // (w-2) + 1 
+            j = l % (w-2) + 1
+            _neighbor = np.array([
+                _mask[i-1, j], _mask[i-1, j+1],
+                _mask[i, j+1], _mask[i+1, j+1],
+                _mask[i+1, j], _mask[i+1, j-1],
+                _mask[i, j-1], _mask[i-1, j-1],
+            ])
+            
+            if _mask[i,j] == 0 and _neighbor.min() != _neighbor.max():
+                edge_dict[(i, j)] = np.count_nonzero(_neighbor)
+                    
+            
         print('Calculating finished. Time elapsed: {}s'.format(time()-s))
         
         bary_dict = {
             'face_id': face_id,
-            'bary_weights': bary_weights
+            'bary_weights': bary_weights,
+            'edge_dict': edge_dict
         }
         
         with open(self.bc_pickle, 'wb') as wf:
             pickle.dump(bary_dict, wf)
             
-        return face_id, bary_weights
-
+        return face_id, bary_weights, edge_dict
+        
+    '''
+        _dilate: perform dilate_like operation for initial
+        UV map, to avoid out-of-region error when resampling
+    '''
+    def _dilate(self, UV_map, pixels=1):
+        _UV_map = UV_map.copy()
+        for k, v in self.edge_dict.items():
+            i, j = k[0], k[1]
+            _UV_map[i, j] = np.sum(np.array([
+                UV_map[i-1, j], UV_map[i-1, j+1],
+                UV_map[i, j+1], UV_map[i+1, j+1],
+                UV_map[i+1, j], UV_map[i+1, j-1],
+                UV_map[i, j-1], UV_map[i-1, j-1],
+            ]), axis=0) / v
     
+        return _UV_map
+        
     ####################
     # Render Functions #
     ####################
@@ -235,33 +275,6 @@ class UV_Map_Generator():
             
         return img, verts, rgbs
         
-    # def render_point_cloud(self, img_name=None, verts=None, rgbs=None):
-        # if verts is None:
-            # verts = self.vertices
-        # if rgbs is None:
-            # print('Warning: rgb not specified, use normalized 3d coords instead...')
-            # v_min = np.amin(verts, axis=0, keepdims=True)
-            # v_max = np.amax(verts, axis=0, keepdims=True)
-            # rgbs = (verts - v_min) / (v_max - v_min)
-            
-        # img = np.zeros((self.h, self.w, 3), dtype=np.float)
-        # uvs = self.texcoords * np.array([[self.h - 1, self.w - 1]])
-        # for face in self.vt_faces:
-            # vt0, vt1, vt2 = face
-            # v0, v1, v2 = self.vt_to_v_face[(vt0, vt1, vt2)]
-            
-            # vertices = (rgbs[v0], rgbs[v1], rgbs[v2])
-            # texcoords = (uvs[vt0], uvs[vt1], uvs[vt2])
-        
-            # for i in range(len(texcoords)):
-                # texcoord = texcoords[i]
-                # img[int(texcoord[0]), int(texcoord[1])] = vertices[i] 
-        
-        # if img_name is not None:
-            # imsave(img_name, img)
-            
-        # return img, verts, rgbs
-        
     def render_UV_atlas(self, image_name, size=1024):
         if self.vt_faces is None:
             print('Cyka Blyat: Load an obj file first!')
@@ -276,7 +289,7 @@ class UV_Map_Generator():
     
     def write_ply(self, ply_name, verts, rgbs=None):
         if rgbs is None:
-            print('Warning: rgb not specified, use normalized 3d coords instead...')
+            #print('Warning: rgb not specified, use normalized 3d coords instead...')
             v_min = np.amin(verts, axis=0, keepdims=True)
             v_max = np.amax(verts, axis=0, keepdims=True)
             rgbs = (verts - v_min) / (v_max - v_min)
@@ -369,36 +382,31 @@ class UV_Map_Generator():
             self.vt_to_v[i] for i in range(self.texcoords.shape[0])
         ])
         rgbs = verts[vt_to_v_index]
-        return self.UV_interp(rgbs), verts_backup
+        
+        #return self.UV_interp(rgbs), verts_backup
+        return self._dilate(self.UV_interp(rgbs)), verts_backup
     
     '''
         TODO: make it torch.
     '''
     def resample(self, UV_map):
         h, w, c = UV_map.shape
-        uvs = self.texcoords * np.array([[self.h - 1, self.w - 1]])
-        vt_3d = np.zeros((uvs.shape[0], 3), dtype=uvs.dtype)
-        '''
-        vts = vts.astype(np.int)
-        vt_3d = np.stack([
-            UV_map[vts[i,0], vts[i,1]]
-            for i in range(vts.shape[0])
-        ], axis=0)
-        '''
-        vts = uvs.astype(np.int)
+        vts = np.floor(self.texcoords * np.array([[self.h - 1, self.w - 1]])).astype(np.int)
+        vt_3d = [None] * vts.shape[0]
+        
         for i in range(vts.shape[0]):
-            neighbors = [
+            
+            coords = [
                 (vts[i, 0], vts[i, 1]),
                 (vts[i, 0], vts[i, 1]+1),
                 (vts[i, 0]+1, vts[i, 1]),
                 (vts[i, 0]+1, vts[i, 1]+1),
             ]
-            
-            for nb in neighbors:
-                if self.bary_id[nb[0], nb[1]] > 0:
-                    vt_3d[i] = UV_map[nb[0], nb[1]]
-                    break
-        
+            for coord in coords:
+                if UV_map[coord[0], coord[1]].max() > 0:
+                    vt_3d[i] = UV_map[coord[0], coord[1]]
+                    
+        vt_3d = np.stack(vt_3d)
         # convert vt back to v (requires v_to_vt index)
         cyka_v_3d = [None] * len(self.v_to_vt)
         for i in range(len(self.v_to_vt)):

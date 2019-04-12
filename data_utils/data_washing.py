@@ -6,7 +6,8 @@ from torch.nn import Module
 import os
 import shutil
 from sys import platform
-from skimage.io import imread, imsave
+#from skimage.io import imread, imsave
+from cv2 import imread, imwrite
 from skimage.transform import resize
 from skimage.draw import circle
 from tqdm import tqdm
@@ -82,7 +83,7 @@ class DataWasher():
                 
         self.length = self.pose.shape[0]
     
-    def _rand_crop_and_resize(self, img, i, crop_margin=60):
+    def _rand_crop_and_resize(self, img, i, crop_margin=40):
         h = img.shape[0]
         w = img.shape[1]
         # random_crop and resize
@@ -93,18 +94,23 @@ class DataWasher():
         
         crop_size = np.random.randint(
             low=max(h_span, w_span), 
-            high=min(h, w)
+            high=min(h, w)-6
         )
+        top = (max(0, y2d.max() - crop_size + 20) + 
+            min(y2d.min() - 20, h - crop_size)) // 2
         
-        top = np.random.randint(
-            low=max(0, y2d.max() - crop_size),
-            high=min(y2d.min(), h - crop_size)
-        )
+        # top = np.random.randint(
+            # low=max(0, y2d.max() - crop_size + 20),
+            # high=min(y2d.min() - 20, h - crop_size)
+        # )
         
-        left = np.random.randint(
-            low=max(0, x2d.max() - crop_size),
-            high=min(x2d.min(), w - crop_size)
-        )
+        left = (max(0, x2d.max() - crop_size + 20) + 
+            min(x2d.min() - 20, w - crop_size) ) // 2
+        
+        # left = np.random.randint(
+            # low=max(0, x2d.max() - crop_size + 20),
+            # high=min(x2d.min() - 20, w - crop_size)
+        # )
         
         img = img[top:top+crop_size, left:left+crop_size, :]
         img = resize(img, (self.out_size, self.out_size))
@@ -166,11 +172,12 @@ class DataWasher():
             img = self._add_noise(img, sigma_noise)
             '''
             self._visualize(
-                target_folder + name,
+                '_test_washed/result_{}.png'.format(i),
                 img, self.gt2d[i, :, :2]
             )
             '''
-            imsave(target_folder + name, img)
+            #imsave(target_folder + name, img)
+            imwrite(target_folder + name, (img*255).astype(np.uint8))
         
         keep_list = ['gt2d', 'gt3d', 'imagename', 'pose', 'shape']
         f = open(target_folder + '/' + annotation_pickle, 'wb')
@@ -178,9 +185,8 @@ class DataWasher():
         pickle.dump(keep_dict, f)
         f.close()
         
-        
 if __name__ == '__main__':
     np.random.seed(9608)
-    datawasher = DataWasher(max_item=40)
+    datawasher = DataWasher()
     datawasher._strip_non_square_images()
     datawasher.data_augmentation()
