@@ -60,8 +60,7 @@ class Human36MWashedDataset(Dataset):
         out_dict = {}
         for item in self.itemlist:
             if item == 'imagename':
-                out_dict[item] = [self.root_dir + b
-                    for b in getattr(self, item)[index]]
+                out_dict[item] = getattr(self, item)[index]
             else:
                 data_npy = getattr(self, item)[index]
                 out_dict[item] = torch.from_numpy(data_npy)\
@@ -79,11 +78,11 @@ class Human36MWashedDataset(Dataset):
     def __len__(self):
         return self.length
     
-def visualize(folder, imagenames, mesh_2d, joints_2d):
+def visualize(folder, imagenames, mesh_2d, joints_2d, root=None):
     i = 0
     for name, mesh, joints in zip(imagenames, mesh_2d, joints_2d):
         print(name)
-        shutil.copyfile(name,
+        shutil.copyfile(root + name,
             '/im_gt_{}.png'.format(folder, i)
         )
         im = imread(name)
@@ -100,7 +99,7 @@ def visualize(folder, imagenames, mesh_2d, joints_2d):
         i += 1
 
     
-def run_test():
+def create_UV_maps(UV_label_root=None):
     if platform == 'linux':
         os.environ['CUDA_VISIBLE_DEVICES'] = '2'
     
@@ -117,73 +116,81 @@ def run_test():
         )
     dataset = Human36MWashedDataset(model, calc_mesh=True)
     
-    # generate mesh, align with 14 point ground truth
-    case_num = 200
-    data = dataset[:case_num]
-    meshes = data['meshes']
-    input = data['lsp_joints']
-    target_2d = data['gt2d']
-    target_3d = data['gt3d']
-    
-    transforms = map_3d_to_2d(input, target_2d, target_3d)
-    
-    # Important: mesh should be centered at the origin!
-    deformed_meshes = transforms(meshes)
-    mesh_3d = deformed_meshes.detach().cpu().numpy()
-    
     file_prefix = 'radvani_template'
     generator = UV_Map_Generator(
         UV_height=256,
         UV_pickle=file_prefix+'.pickle'
     )
     
-    test_folder = '_test_washed'
-    if not os.path.isdir(test_folder):
-        os.makedirs(test_folder)
-        
-    # visualize( test_folder, data['imagename'], mesh_3d[:,:,:2].astype(np.int), 
-       # target_2d.detach().cpu().numpy().astype(np.int))
+    # create root folder for UV labels
+    if UV_label_root is None:
+        UV_label_root=dataset.root_dir.replace('_washed', '_UV_map')
     
-    s=time()
-    #UV_position_maps = [None] * case_num
-    _loop = tqdm(range(dataset.length), ncols=80)
-    for i in _loop:
-        mesh = mesh_3d[i]
+    if not os.path.isdir(UV_label_root):
+        os.makedirs(UV_label_root)
+        subs = [sub for sub in os.listdir(dataset.root_dir)
+            if os.path.isdir(dataset.root_dir + '/' + sub)]
+        for sub in subs:
+            os.makedirs(UV_label_root + '/' + sub)
+    
+    # generate mesh, align with 14 point ground truth
+    batch_size = 64
+    total_batch_num = dataset.length // batch_size + 1
+    _loop = tqdm(range(total_batch_num), ncols=80)
+    
+    for batch_id in _loop:
+        data = dataset[batch_id * batch_size: (batch_id + 1) * batch_size]
+        meshes = data['meshes']
+        input = data['lsp_joints']
+        target_2d = data['gt2d']
+        target_3d = data['gt3d']
+        imagename = [UV_label_root + str for str in data['imagename']]
+        
+        transforms = map_3d_to_2d(input, target_2d, target_3d)
+        
+        # Important: mesh should be centered at the origin!
+        deformed_meshes = transforms(meshes)
+        mesh_3d = deformed_meshes.detach().cpu().numpy()
         '''
-        model.write_obj(
-            mesh, 
-            '{}/real_mesh_{}.obj'.format(test_folder, i)
-        )   # weird.
+        test_folder = '_test_radvani'
+        if not os.path.isdir(test_folder):
+            os.makedirs(test_folder)
+        visualize(test_folder, data['imagename'], mesh_3d[:,:,:2].astype(np.int), 
+           target_2d.detach().cpu().numpy().astype(np.int), dataset.root_dir)
         '''
-        UV_position_map, verts_backup = \
-            generator.get_UV_map(mesh)
-        imwrite('{}/UV_{}.png'.format(test_folder, i), (UV_position_map * 255).astype(np.uint8))
-        
-        # write colorized coordinates to ply
-        '''
-        UV_scatter, _, _ = generator.render_point_cloud(
-            verts=mesh
-        )
-        
-        generator.write_ply(
-            '{}/colored_mesh_{}.ply'.format(test_folder, i), mesh
-        )
-        out = np.concatenate(
-            (UV_position_map, UV_scatter), axis=1
-        )
-        
-        imsave('{}/UV_position_map_{}.png'.format(test_folder, i), out)
-        
-        resampled_mesh = generator.resample(UV_position_map)
-        
-        model.write_obj(
-            resampled_mesh, 
-            '{}/recon_mesh_{}.obj'.format(test_folder, i)
-        )
-        '''
-    #UV_position_maps = np.stack(UV_position_maps, axis=0)
-    print('{} cases for {}s' .format(case_num, time()-s))
+        s=time()
+        for name, mesh in zip(imagename, mesh_3d):
+            UV_position_map, verts_backup = \
+                generator.get_UV_map(mesh)
+            imwrite(name, (UV_position_map * 255).astype(np.uint8))
+            
+            # write colorized coordinates to ply
+            '''
+            model.write_obj(
+                mesh, 
+                '{}/real_mesh_{}.obj'.format(test_folder, i)
+            )   # weird.
+            UV_scatter, _, _ = generator.render_point_cloud(
+                verts=mesh
+            )
+            
+            generator.write_ply(
+                '{}/colored_mesh_{}.ply'.format(test_folder, i), mesh
+            )
+            out = np.concatenate(
+                (UV_position_map, UV_scatter), axis=1
+            )
+            
+            imsave('{}/UV_position_map_{}.png'.format(test_folder, i), out)
+            
+            resampled_mesh = generator.resample(UV_position_map)
+            
+            model.write_obj(
+                resampled_mesh, 
+                '{}/recon_mesh_{}.obj'.format(test_folder, i)
+            )
+            '''
 
 if __name__ == '__main__':
-    run_test()
+    create_UV_maps()
     
