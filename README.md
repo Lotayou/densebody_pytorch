@@ -7,7 +7,7 @@ PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org
 
 Current experiments features 6 ConvRes blocks with stride 2 and 2 fc layers for the encoder. The structure of the decoder is symmetric with that of the encoder, with 2 fc layers following by 6 consecutive conv and upsample layers and a final `Tanh()` to get the output UV position map. The following picture showcases the result (Only 3 conv layers are drawn).
 
-![net_arch](teaser/network_arch.pdf)
+![net_arch](teaser/net_arch.png)
 
 Training after 40 epochs yields following result:
 
