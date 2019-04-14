@@ -6,6 +6,7 @@ import sys
 from sys import platform
 import os
 from tqdm import tqdm
+import numpy as np
 from argparse import ArgumentParser
 
 # default options
@@ -18,7 +19,7 @@ def TrainOptions(debug=False):
     linux_root = '/backup1/lingboyang/data'  # change to you dir
     data_root = linux_root if platform == 'linux' else windows_root
     num_threads = 4 if platform == 'linux' else 0
-    batch_size = 64 if platform == 'linux' else 4
+    batch_size = 8 if platform == 'linux' else 4
     
     parser.add_argument('--data_root', type=str, default=data_root)
     parser.add_argument('--checkpoints_dir', type=str, default='checkpoints')
@@ -82,9 +83,10 @@ if __name__ == '__main__':
     # Change this to your gpu id.
     # The program is fixed to run on a single GPU
     if platform == 'linux':
-        os.environ['CUDA_VISIBLE_DEVICES'] = 1
-        
-    opt = TrainOptions(debug=True)
+        os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+    
+    np.random.seed(9608)    
+    opt = TrainOptions(debug=False)
     dataset = DenseBodyDataset(data_root=opt.data_root, max_size=opt.max_dataset_size)
     batchs_per_epoch = len(dataset) // opt.batch_size # drop last batch
     print('#training images = %d' % len(dataset))
@@ -94,13 +96,18 @@ if __name__ == '__main__':
     visualizer = vis.Visualizer(opt)
     total_steps = 0
     
+    rand_perm = np.arange(batchs_per_epoch)
+    
+    # put something in txt file
+    file_log = open(os.path.join(opt.checkpoints_dir, opt.name, 'log.txt'), 'w')
     for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
         # set loop information
         print('Epoch %d: start training' % epoch)
-        loop = tqdm(range(1, batchs_per_epoch+1), ncols=120)
+        np.random.shuffle(rand_perm)
+        loop = tqdm(range(batchs_per_epoch), ncols=120)
         loss_metrics = 0
         for i in loop:
-            data = dataset[(i-1) * opt.batch_size: i * opt.batch_size]
+            data = dataset[rand_perm[i] * opt.batch_size: (rand_perm[i] + 1) * opt.batch_size]
             loss_dict = model.train_one_batch(data)
             loss_metrics = loss_dict['total']
             # change tqdm info
@@ -109,7 +116,9 @@ if __name__ == '__main__':
                 tqdm_info += ' %s: %.6f' % (k, v)
             loop.set_description(tqdm_info)
             
-            if i % opt.save_result_freq == 0:
+            if (i + 1) % opt.save_result_freq == 0:
+                file_log.write('epoch {} iter {}: {}\n'.format(epoch, i, tqdm_info))
+                file_log.flush()
                 visualizer.save_results(model.get_current_visuals(), epoch, i)
         
         if epoch % opt.save_epoch_freq == 0:
@@ -117,4 +126,5 @@ if __name__ == '__main__':
         print('Epoch %d training finished' % epoch)
         if epoch > opt.niter:
             model.update_learning_rate(metrics=loss_metrics)
-        
+            
+    file_log.close()
