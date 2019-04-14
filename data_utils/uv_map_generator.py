@@ -5,7 +5,6 @@ from torch.nn import Module
 import os
 import shutil
 from sys import platform
-from torch.utils.data import Dataset, DataLoader
 from skimage.io import imread, imsave
 from skimage.draw import circle
 from skimage.draw import polygon_perimeter as pope
@@ -317,6 +316,7 @@ class UV_Map_Generator():
                     .format(verts[i,0], verts[i,1], verts[i,2],
                         rgbs[i,0], rgbs[i,1], rgbs[i,2])
                 f.write(str)
+                
         return verts, rgbs
     
     #####################
@@ -420,7 +420,7 @@ if __name__ == '__main__':
     # test render module
     file_prefix = 'radvani_template'
     generator = UV_Map_Generator(
-        UV_height=300,
+        UV_height=256,
         UV_pickle=file_prefix+'.pickle'
     )
     test_folder = '_test_radvani'
@@ -430,3 +430,9 @@ if __name__ == '__main__':
     generator.render_UV_atlas('{}/{}_atlas.png'.format(test_folder, file_prefix))
     img, verts, rgbs = generator.render_point_cloud('{}/{}.png'.format(test_folder, file_prefix))
     verts, rgbs = generator.write_ply('{}/{}.ply'.format(test_folder, file_prefix), verts, rgbs)
+    uv, _ = generator.get_UV_map(verts)
+    uv = uv.max(axis=2)
+    print(uv.shape)
+    binary_mask = np.where(uv > 0, 1., 0.)
+    binary_mask = (binary_mask * 255).astype(np.uint8)
+    imsave('radvani_UV_mask.png'.format(file_prefix), binary_mask)
