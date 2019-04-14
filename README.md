@@ -10,8 +10,11 @@ Current experiments features 6 ConvRes blocks with stride 2 and 2 fc layers for 
 ![net_arch](teaser/network_arch.pdf)
 
 Training after 40 epochs yields following result:
+
 ![result](teaser/040_00999.png)
+
 And here's the resampled body mesh shown in point cloud:
+
 ![result](teaser/recon_mesh.PNG)
 
 ### Update Notes
