@@ -1,5 +1,7 @@
 # densebody_pytorch
-PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org/abs/1903.10153v3)
+PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org/abs/1903.10153v3).
+
+**Note**: For most recent updates, please check out the `dev` branch.
 
 ![paper teaser](teaser/teaser.jpg)
 
