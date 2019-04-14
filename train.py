@@ -117,7 +117,7 @@ if __name__ == '__main__':
             loop.set_description(tqdm_info)
             
             if (i + 1) % opt.save_result_freq == 0:
-                file_log.write('epoch {} iter {}: {}'.format(epoch, i, tqdm_info))
+                file_log.write('epoch {} iter {}: {}\n'.format(epoch, i, tqdm_info))
                 file_log.flush()
                 visualizer.save_results(model.get_current_visuals(), epoch, i)
         
