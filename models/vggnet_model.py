@@ -3,9 +3,9 @@ import torch
 from .base_model import BaseModel
 from . import networks
 
-class ResNetModel(BaseModel):
+class VGGNetModel(BaseModel):
     def name(self):
-        return 'ResNetModel'
+        return 'VGGNetModel'
         
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
@@ -43,9 +43,10 @@ class ResNetModel(BaseModel):
     def train_one_batch(self, data):
         self.set_input(data)
         self.fake_UV = self.decoder(self.encoder(self.real_input))
+        #print(self.fake_UV.max(), self.fake_UV.min())
         l1_loss = self.L1_loss(self.fake_UV, self.real_UV)
         tv_loss = self.TV_loss(self.fake_UV)
-        total_loss = l1_loss + self.opt.tv_weight * tv_loss
+        total_loss = l1_loss #+ self.opt.tv_weight * tv_loss
         
         self.optimizer_enc.zero_grad()
         self.optimizer_dec.zero_grad()
