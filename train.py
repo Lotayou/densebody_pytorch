@@ -29,7 +29,7 @@ def TrainOptions(debug=False):
     parser.add_argument('--im_size', type=int, default=256)
     parser.add_argument('--batch_size', type=int, default=batch_size)
     parser.add_argument('--name', type=str, default='densebody_resnet_h36m')
-    parser.add_argument('--uv_map', type=str, default='radvani', choices=['radvani', 'smpl_fbx'])
+    parser.add_argument('--uv_map', type=str, default='radvani', choices=['radvani', 'radvani_new', 'smpl_fbx'])
     parser.add_argument('--num_threads', default=num_threads, type=int, help='# sthreads for loading data')
     
     # model options
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     
     np.random.seed(9608)    
     opt = TrainOptions(debug=False)
-    dataset = DenseBodyDataset(data_root=opt.data_root, max_size=opt.max_dataset_size)
+    dataset = DenseBodyDataset(data_root=opt.data_root, uv_map=opt.uv_map, max_size=opt.max_dataset_size)
     batchs_per_epoch = len(dataset) // opt.batch_size # drop last batch
     print('#training images = %d' % len(dataset))
 

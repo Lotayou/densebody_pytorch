@@ -187,6 +187,7 @@ class DataWasher():
         
 if __name__ == '__main__':
     np.random.seed(9608)
-    datawasher = DataWasher()
+    root_dir = None  # Change this to your human36m dataset path
+    datawasher = DataWasher(root_dir=root_dir)
     datawasher._strip_non_square_images()
     datawasher.data_augmentation()
