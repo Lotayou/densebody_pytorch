@@ -45,7 +45,7 @@ def TrainOptions(debug=False):
     # training options
     parser.add_argument('--phase', type=str, default='train', choices=['train', 'test'])
     parser.add_argument('--continue_train', action='store_true')
-    parser.add_argument('--load_epoch', type=int, default=1)
+    parser.add_argument('--load_epoch', type=int, default=0)
     parser.add_argument('--epoch_count', type=int, default=1)
     parser.add_argument('--niter', type=int, default=100, help='# of iter at starting learning rate')
     parser.add_argument('--niter_decay', type=int, default=100, help='# of iter to linearly decay learning rate to zero')    
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     # Change this to your gpu id.
     # The program is fixed to run on a single GPU
     if platform == 'linux':
-        os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+        os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     
     np.random.seed(9608)    
     opt = TrainOptions(debug=False)
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     
     # put something in txt file
     file_log = open(os.path.join(opt.checkpoints_dir, opt.name, 'log.txt'), 'w')
-    for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
+    for epoch in range(opt.load_epoch + 1, opt.niter + opt.niter_decay + 1):
         # set loop information
         print('Epoch %d: start training' % epoch)
         np.random.shuffle(rand_perm)
