@@ -178,8 +178,7 @@ class UV_Map_Generator():
             grids[:, 0] = r
             grids[:, 1] = c
             
-            weights = solve(anchors, grids) # not enough accuracyï¼Ÿ
-            inside = np.logical_and.reduce(weights.T > 1e-10)
+            weights = solve(anchors, grids) # not enough accuracyï¼?            inside = np.logical_and.reduce(weights.T > 1e-10)
             index = np.where(inside == True)[0]
             
             if 0 == index.size:
@@ -292,7 +291,6 @@ class UV_Map_Generator():
             v_min = np.amin(verts, axis=0, keepdims=True)
             v_max = np.amax(verts, axis=0, keepdims=True)
             rgbs = (verts - v_min) / np.maximum(eps, v_max - v_min)
-        print(rgbs.max())
         if rgbs.max() < 1.001:
             rgbs = (rgbs * 255.).astype(np.uint8)
         

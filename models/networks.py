@@ -89,7 +89,7 @@ def define_encoder(im_size, nz, nef, netE, ndown, norm='batch', nl='lrelu', init
     elif netE == 'vggnet':
         net = VGGEncoder(im_size, nz, nef, ndown, norm_layer, nl_layer)
     else:
-        raise NotImplementedError('Encoder model name [%s] is not recognized' % net)
+        raise NotImplementedError('Encoder model name [%s] is not recognized' % netE)
 
     return init_net(net, init_type, device)
     
@@ -99,10 +99,10 @@ def define_decoder(im_size, nz, ndf, netD, nup, norm='batch', nl='lrelu', init_t
     nl_layer = get_non_linearity(layer_type=nl)
     if netD == 'convres':
         net = ConvResDecoder(im_size, nz, ndf, nup=nup, norm_layer=norm_layer, nl_layer=nl_layer)
-    if netD == 'conv-up':
+    elif netD == 'conv-up':
         net = ConvUpSampleDecoder(im_size, nz, ndf, nup=nup, norm_layer=norm_layer, nl_layer=nl_layer)
     else:
-        raise NotImplementedError('Encoder model name [%s] is not recognized' % net)
+        raise NotImplementedError('Decoder model name [%s] is not recognized' % netD)
 
     return init_net(net, init_type, device)
     
@@ -277,7 +277,7 @@ class ResNetEncoder(nn.Module):
 #####  VGGNet  #####
 
 '''
-    This is a replica of torchvision.models.vgg16_bn with modified input size
+    This is a replica of torchvision.models.vgg13_bn with modified input size
 '''
 class VGGEncoder(nn.Module):
     def __init__(self, im_size, nz=256, ngf=64, ndown=5,
@@ -286,13 +286,13 @@ class VGGEncoder(nn.Module):
         cfg_parts = [
             [1 * ngf, 1 * ngf, 'M'], 
             [2 * ngf, 2 * ngf, 'M'],
-            [4 * ngf, 4 * ngf, 4 * ngf, 'M'],
-            [8 * ngf, 8 * ngf, 8 * ngf, 'M'],
+            [4 * ngf, 4 * ngf, 'M'],  # [4 * ngf, 4 * ngf, 4 * ngf, 'M'],
+            [8 * ngf, 8 * ngf, 'M'],  # [8 * ngf, 8 * ngf, 8 * ngf, 'M'],
         ]
         custom_cfg = []
         for i in range(ndown):
             custom_cfg += cfg_parts[min(i, 3)]
-        fc_dim = 2 * nz
+        fc_dim = 4 * nz
         
         self.features = self._make_layers(
             cfg=custom_cfg,
@@ -303,10 +303,7 @@ class VGGEncoder(nn.Module):
         im_size = im_size // (2**ndown)
         self.avgpool=nn.AdaptiveAvgPool2d((im_size, im_size))
         self.classifier = nn.Sequential(
-            nn.Linear(512 * im_size * im_size, 4096),
-            nl_layer,
-            nn.Dropout(),
-            nn.Linear(4096, fc_dim),
+            nn.Linear(512 * im_size * im_size, fc_dim),
             nl_layer,
             nn.Dropout(),
             nn.Linear(fc_dim, nz),
@@ -349,10 +346,8 @@ class ConvResDecoder(nn.Module):
         prev = 8
         for i in range(nup-1, -1, -1):
             cur = min(prev, 2**i)
-            
-            layers += [deconv
-                
-            ]
+            layers.append(ConvResBlock(ngf * prev, ngf * cur, direction='up', stride=2,
+                norm_layer=norm_layer, activation_layer=nl_layer))
             prev = cur
         
         layers += [
@@ -381,7 +376,7 @@ class ConvUpSampleDecoder(nn.Module):
         norm_layer=None, nl_layer=None):
         super(ConvUpSampleDecoder, self).__init__()
         self.im_size = im_size // (2 ** nup)
-        fc_dim = 2 * nz
+        fc_dim = 4 * nz
         
         layers = []
         prev = 8
@@ -400,10 +395,7 @@ class ConvUpSampleDecoder(nn.Module):
             nn.Linear(nz, fc_dim),
             nl_layer,
             nn.Dropout(),
-            nn.Linear(fc_dim, 4096),
-            nl_layer,
-            nn.Dropout(),
-            nn.Linear(4096, self.im_size * self.im_size * ngf * 8),
+            nn.Linear(fc_dim, self.im_size * self.im_size * ngf * 8),
         )
         
     def forward(self, x):
