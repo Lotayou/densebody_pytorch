@@ -99,7 +99,7 @@ def visualize(folder, imagenames, mesh_2d, joints_2d, root=None):
         i += 1
 
     
-def create_UV_maps(UV_label_root=None):
+def create_UV_maps(UV_label_root=None, uv_prefix = 'radvani_template'):
     if platform == 'linux':
         os.environ['CUDA_VISIBLE_DEVICES'] = '2'
     
@@ -116,10 +116,9 @@ def create_UV_maps(UV_label_root=None):
         )
     dataset = Human36MWashedDataset(model, calc_mesh=True)
     
-    file_prefix = 'radvani_template'
     generator = UV_Map_Generator(
         UV_height=256,
-        UV_pickle=file_prefix+'.pickle'
+        UV_pickle=uv_prefix+'.pickle'
     )
     
     # create root folder for UV labels
@@ -192,5 +191,8 @@ def create_UV_maps(UV_label_root=None):
             '''
 
 if __name__ == '__main__':
-    create_UV_maps()
+    # Please make sure the prefix is the same as in train.py opt.uv_prefix
+    create_UV_maps(uv_prefix='radvani_template')
+    # create_UV_maps(uv_prefix='radvani_new_template')
+    # create_UV_maps(uv_prefix='smpl_fbx_template')
     

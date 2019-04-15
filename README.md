@@ -3,6 +3,9 @@ PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org
 
 ![paper teaser](teaser/teaser.jpg)
 
+### Data Preparation
+Please follow the instructions [`PREPS.md`](PREPS.md) to prepare your training dataset and UV maps.
+
 ### Network Architecture
 
 Current experiments features 6 ConvRes blocks with stride 2 and 2 fc layers for the encoder. The structure of the decoder is symmetric with that of the encoder, with 2 fc layers following by 6 consecutive conv and upsample layers and a final `Tanh()` to get the output UV position map. The following picture showcases the result (Only 3 conv layers are drawn).
@@ -22,21 +25,6 @@ And here's the resampled body mesh shown in point cloud:
 - Code reformating complete! Please refer to `data_utils/UV_map_generator.py` for more details.
 - Thanks [Raj Advani](https://github.com/radvani) for providing new hand crafted UV maps!
 - For those who already forked my project, the original code is now temporarily hosted in the `legacy` branch, and will be removed after the code reformatting is complete.
-
-### Prerequisites
-```
-Windows 10 / Ubuntu 18.04
-CUDA 9.0 / 9.1
-Python 3.6
-PyTorch 1.0.0
-opencv-python
-tqdm
-chumpy (For converting SMPL model to basic numpy arrays)
-h5py (For processing Human36m cdf annotations)
-```
-
-(Optional) Install [torch-batched-svd](https://github.com/KinglittleQ/torch-batch-svd) for speedup (Only tested under Ubuntu system).
-
 
 ### TODO List
 - [x] Creating ground truth UV position maps for Human36m dataset.

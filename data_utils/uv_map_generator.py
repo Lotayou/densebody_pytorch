@@ -20,7 +20,7 @@ from scipy.interpolate import RectBivariateSpline as RBS
 '''
 class UV_Map_Generator():
     def __init__(self, UV_height, UV_width=-1, 
-        UV_pickle='SMPL_UV_map.pickle'):
+        UV_pickle='radvani_template.pickle'):
         self.h = UV_height
         self.w = self.h if UV_width < 0 else UV_width
         
@@ -418,6 +418,7 @@ class UV_Map_Generator():
         
 if __name__ == '__main__':
     # test render module
+    # change this to the same as in train.py opt.uv_prefix
     file_prefix = 'radvani_template'
     generator = UV_Map_Generator(
         UV_height=256,

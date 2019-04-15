@@ -33,12 +33,19 @@ im_trans = transforms.Compose([
     
 '''
 class DenseBodyDataset(Dataset):
-    def __init__(self, data_root=data_root, dataset_name='human36m', annotation = 'h36m.pickle', 
-        phase='train', train_test_split=0.8, max_size=-1, device=None, transform=im_trans):
+    def __init__(self, data_root=data_root, uv_map='radvani', dataset_name='human36m', 
+        annotation = 'h36m.pickle', phase='train', train_test_split=0.8, max_size=-1, device=None, transform=im_trans):
         
         super(DenseBodyDataset, self).__init__()
         self.im_root = '{}/{}_washed'.format(data_root, dataset_name)
-        self.uv_root = '{}/{}_UV_map'.format(data_root, dataset_name)
+        self.uv_root = '{}/{}_UV_map_{}'.format(data_root, dataset_name, uv_map)
+        
+        if not os.path.isdir(self.im_root):
+            raise(FileNotFoundError('{} dataset not found, ' + 
+                'please run "data_washing.py" first'.format(dataset_name)))
+        if not os.path.isdir(self.uv_root):
+            raise(FileNotFoundError('{} uv map not found, ' + 
+                'please run "create_dataset.py" first'.format(uv_map)))
         
         # parse annotation
         self.itemlist = []
