@@ -178,7 +178,8 @@ class UV_Map_Generator():
             grids[:, 0] = r
             grids[:, 1] = c
             
-            weights = solve(anchors, grids) # not enough accuracyï¼?            inside = np.logical_and.reduce(weights.T > 1e-10)
+            weights = solve(anchors, grids) # not enough accuracy?
+            inside = np.logical_and.reduce(weights.T > 1e-10)
             index = np.where(inside == True)[0]
             
             if 0 == index.size:
