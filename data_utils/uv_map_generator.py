@@ -178,7 +178,7 @@ class UV_Map_Generator():
             grids[:, 0] = r
             grids[:, 1] = c
             
-            weights = solve(anchors, grids) # not enough accuracy？
+            weights = solve(anchors, grids) # not enough accuracy?
             inside = np.logical_and.reduce(weights.T > 1e-10)
             index = np.where(inside == True)[0]
             
@@ -254,14 +254,14 @@ class UV_Map_Generator():
             If vertex color is not defined, 
             the normalized XYZ coordinates will be used
     '''
-    def render_point_cloud(self, img_name=None, verts=None, rgbs=None):
+    def render_point_cloud(self, img_name=None, verts=None, rgbs=None, eps=1e-8):
         if verts is None:
             verts = self.vertices
         if rgbs is None:
             #print('Warning: rgb not specified, use normalized 3d coords instead...')
             v_min = np.amin(verts, axis=0, keepdims=True)
             v_max = np.amax(verts, axis=0, keepdims=True)
-            rgbs = (verts - v_min) / (v_max - v_min)
+            rgbs = (verts - v_min) / np.maximum(eps, v_max - v_min)
         
         vt_id = [self.vt_to_v[i] for i in range(self.texcoords.shape[0])]
         img = np.zeros((self.h, self.w, 3), dtype=rgbs.dtype)
@@ -286,12 +286,12 @@ class UV_Map_Generator():
             
         imsave(image_name, img)
     
-    def write_ply(self, ply_name, verts, rgbs=None):
+    def write_ply(self, ply_name, verts, rgbs=None, eps=1e-8):
         if rgbs is None:
             #print('Warning: rgb not specified, use normalized 3d coords instead...')
             v_min = np.amin(verts, axis=0, keepdims=True)
             v_max = np.amax(verts, axis=0, keepdims=True)
-            rgbs = (verts - v_min) / (v_max - v_min)
+            rgbs = (verts - v_min) / np.maximum(eps, v_max - v_min)
         if rgbs.max() < 1.001:
             rgbs = (rgbs * 255.).astype(np.uint8)
         

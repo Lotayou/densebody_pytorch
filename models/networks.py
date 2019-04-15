@@ -86,8 +86,10 @@ def define_encoder(im_size, nz, nef, netE, ndown, norm='batch', nl='lrelu', init
     nl_layer = get_non_linearity(layer_type=nl)
     if netE == 'resnet':
         net = ResNetEncoder(im_size, nz, nef, ndown, norm_layer, nl_layer)
+    elif netE == 'vggnet':
+        net = VGGEncoder(im_size, nz, nef, ndown, norm_layer, nl_layer)
     else:
-        raise NotImplementedError('Encoder model name [%s] is not recognized' % net)
+        raise NotImplementedError('Encoder model name [%s] is not recognized' % netE)
 
     return init_net(net, init_type, device)
     
@@ -95,10 +97,12 @@ def define_decoder(im_size, nz, ndf, netD, nup, norm='batch', nl='lrelu', init_t
     net = None
     norm_layer = get_norm_layer(layer_type=norm)
     nl_layer = get_non_linearity(layer_type=nl)
-    if netD == 'basic':
-        net = BasicDecoder(im_size, nz, ndf, nup=nup, norm_layer=norm_layer, nl_layer=nl_layer)
+    if netD == 'convres':
+        net = ConvResDecoder(im_size, nz, ndf, nup=nup, norm_layer=norm_layer, nl_layer=nl_layer)
+    elif netD == 'conv-up':
+        net = ConvUpSampleDecoder(im_size, nz, ndf, nup=nup, norm_layer=norm_layer, nl_layer=nl_layer)
     else:
-        raise NotImplementedError('Encoder model name [%s] is not recognized' % net)
+        raise NotImplementedError('Decoder model name [%s] is not recognized' % netD)
 
     return init_net(net, init_type, device)
     
@@ -160,6 +164,8 @@ class TotalVariationLoss(nn.Module):
 #####################
 #      Networks     #
 #####################
+
+#####  ResNet  #####
 
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
@@ -267,12 +273,72 @@ class ResNetEncoder(nn.Module):
         x = self.conv(x)
         x = x.view(x.shape[0], -1)
         return self.fc(x)
+        
+#####  VGGNet  #####
+
+'''
+    This is a replica of torchvision.models.vgg13_bn with modified input size
+'''
+class VGGEncoder(nn.Module):
+    def __init__(self, im_size, nz=256, ngf=64, ndown=5,
+        norm_layer=None, nl_layer=None):
+        super(VGGEncoder, self).__init__()
+        cfg_parts = [
+            [1 * ngf, 1 * ngf, 'M'], 
+            [2 * ngf, 2 * ngf, 'M'],
+            [4 * ngf, 4 * ngf, 'M'],  # [4 * ngf, 4 * ngf, 4 * ngf, 'M'],
+            [8 * ngf, 8 * ngf, 'M'],  # [8 * ngf, 8 * ngf, 8 * ngf, 'M'],
+        ]
+        custom_cfg = []
+        for i in range(ndown):
+            custom_cfg += cfg_parts[min(i, 3)]
+        fc_dim = 4 * nz
+        
+        self.features = self._make_layers(
+            cfg=custom_cfg,
+            batch_norm=True,
+            norm_layer=norm_layer,
+            nl_layer=nl_layer,
+        )
+        im_size = im_size // (2**ndown)
+        self.avgpool=nn.AdaptiveAvgPool2d((im_size, im_size))
+        self.classifier = nn.Sequential(
+            nn.Linear(512 * im_size * im_size, fc_dim),
+            nl_layer,
+            nn.Dropout(),
+            nn.Linear(fc_dim, nz),
+        )
+    
+    def _make_layers(self, cfg, batch_norm=False, norm_layer=None, nl_layer=None):
+        layers = []
+        in_channels = 3
+        for v in cfg:
+            if v == 'M':
+                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            else:
+                conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+                if batch_norm:
+                    layers += [conv2d, norm_layer(v), nl_layer]
+                else:
+                    layers += [conv2d, nl_layer]
+                in_channels = v
+        return nn.Sequential(*layers)
+        
+    def forward(self, x):
+        x = self.features(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        return self.classifier(x)
 
 
-class BasicDecoder(nn.Module):
+#####  Decoder #####
+class ConvResDecoder(nn.Module):
+    '''
+        ConvResDecoder: Use convres block for upsampling
+    '''
     def __init__(self, im_size, nz, ngf=64, nup=6,
         norm_layer=None, nl_layer=None):
-        super(BasicDecoder, self).__init__()
+        super(ConvResDecoder, self).__init__()
         self.im_size = im_size // (2 ** nup)
         fc_dim = 2 * nz
         
@@ -294,6 +360,41 @@ class BasicDecoder(nn.Module):
             nn.Linear(nz, fc_dim),
             nn.BatchNorm1d(fc_dim),
             nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(fc_dim, self.im_size * self.im_size * ngf * 8),
+        )
+        
+    def forward(self, x):
+        x = self.fc(x)
+        x = x.view(x.shape[0], -1, self.im_size, self.im_size)
+        return self.conv(x)
+        
+class ConvUpSampleDecoder(nn.Module):
+    '''
+        SimpleDecoder
+    '''
+    def __init__(self, im_size, nz, ngf=64, nup=6,
+        norm_layer=None, nl_layer=None):
+        super(ConvUpSampleDecoder, self).__init__()
+        self.im_size = im_size // (2 ** nup)
+        fc_dim = 4 * nz
+        
+        layers = []
+        prev = 8
+        for i in range(nup-1, -1, -1):
+            cur = min(prev, 2**i)
+            layers.append(deconv3x3(ngf * prev, ngf * cur, stride=2))
+            prev = cur
+        
+        layers += [
+            nn.ReflectionPad2d(3),
+            nn.Conv2d(ngf, 3, kernel_size=7, stride=1, padding=0),
+            nn.Tanh(),
+        ]
+        self.conv = nn.Sequential(*layers)
+        self.fc = nn.Sequential(
+            nn.Linear(nz, fc_dim),
+            nl_layer,
+            nn.Dropout(),
             nn.Linear(fc_dim, self.im_size * self.im_size * ngf * 8),
         )
         

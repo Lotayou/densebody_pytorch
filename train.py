@@ -34,7 +34,7 @@ def TrainOptions(debug=False):
     
     # model options
     parser.add_argument('--model', type=str, default='resnet', choices=['resnet', 'vggnet', 'mobilenet'])
-    parser.add_argument('--netD', type=str, default='basic', choices=['basic'])
+    parser.add_argument('--netD', type=str, default='convres', choices=['convres', 'conv-up'])
     parser.add_argument('--nz', type=int, default=256, help='latent dims')
     parser.add_argument('--ndown', type=int, default=6, help='downsample times')
     parser.add_argument('--nchannels', type=int, default=64, help='conv channels')

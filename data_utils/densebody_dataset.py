@@ -41,11 +41,11 @@ class DenseBodyDataset(Dataset):
         self.uv_root = '{}/{}_UV_map_{}'.format(data_root, dataset_name, uv_map)
         
         if not os.path.isdir(self.im_root):
-            raise(FileNotFoundError('{} dataset not found, ' + 
-                'please run "data_washing.py" first'.format(dataset_name)))
+            raise(FileNotFoundError('{} dataset not found, '.format(dataset_name) + 
+                'please run "data_washing.py" first'))
         if not os.path.isdir(self.uv_root):
-            raise(FileNotFoundError('{} uv map not found, ' + 
-                'please run "create_dataset.py" first'.format(uv_map)))
+            raise(FileNotFoundError('{} uv map not found, '.format(uv_map) + 
+                'please run "create_dataset.py" first'))
         
         # parse annotation
         self.itemlist = []
