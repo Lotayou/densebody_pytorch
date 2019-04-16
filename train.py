@@ -29,7 +29,7 @@ def TrainOptions(debug=False):
     parser.add_argument('--im_size', type=int, default=256)
     parser.add_argument('--batch_size', type=int, default=batch_size)
     parser.add_argument('--name', type=str, default='densebody_resnet_h36m')
-    parser.add_argument('--uv_map', type=str, default='radvani', choices=['radvani', 'radvani_new', 'smpl_fbx'])
+    parser.add_argument('--uv_map', type=str, default='radvani', choices=['radvani', 'vbml_close', 'vbml_spaced', 'smpl_fbx'])
     parser.add_argument('--num_threads', default=num_threads, type=int, help='# sthreads for loading data')
     
     # model options
