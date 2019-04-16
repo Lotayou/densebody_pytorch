@@ -83,7 +83,7 @@ if __name__ == '__main__':
     # Change this to your gpu id.
     # The program is fixed to run on a single GPU
     if platform == 'linux':
-        os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+        os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     
     np.random.seed(9608)    
     opt = TrainOptions(debug=False)
@@ -104,9 +104,8 @@ if __name__ == '__main__':
         # set loop information
         print('Epoch %d: start training' % epoch)
         np.random.shuffle(rand_perm)
-        loop = tqdm(range(batchs_per_epoch), ncols=120)
         loss_metrics = 0
-        for i in loop:
+        for i in range(batchs_per_epoch):
             data = dataset[rand_perm[i] * opt.batch_size: (rand_perm[i] + 1) * opt.batch_size]
             loss_dict = model.train_one_batch(data)
             loss_metrics = loss_dict['total']
@@ -114,7 +113,6 @@ if __name__ == '__main__':
             tqdm_info = ''
             for k,v in loss_dict.items():
                 tqdm_info += ' %s: %.6f' % (k, v)
-            loop.set_description(tqdm_info)
             
             if (i + 1) % opt.save_result_freq == 0:
                 file_log.write('epoch {} iter {}: {}\n'.format(epoch, i, tqdm_info))
