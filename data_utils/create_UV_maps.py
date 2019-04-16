@@ -124,7 +124,7 @@ def create_UV_maps(UV_label_root=None, uv_prefix = 'radvani_template'):
     # create root folder for UV labels
     if UV_label_root is None:
         UV_label_root=dataset.root_dir.replace('_washed', 
-            '_UV_map_{}'.format(uv_prefix.split('_')[0]))
+                '_UV_map_{}'.format(uv_prefix[:-9])
     
     if not os.path.isdir(UV_label_root):
         os.makedirs(UV_label_root)
@@ -196,9 +196,9 @@ def create_UV_maps(UV_label_root=None, uv_prefix = 'radvani_template'):
 
 if __name__ == '__main__':
     # Please make sure the prefix is the same as in train.py opt.uv_prefix
-    prefix = 'radvani_template'
-    #prefix = 'vbml_close_template'
-    #prefix = 'vbml_spaced_template'
+    # prefix = 'radvani_template'
+    prefix = 'vbml_close_template'
+    # prefix = 'vbml_spaced_template'
     create_UV_maps(uv_prefix=prefix)
     # create_UV_maps(uv_prefix='radvani_new_template')
     # create_UV_maps(uv_prefix='smpl_fbx_template')
