@@ -124,7 +124,7 @@ def create_UV_maps(UV_label_root=None, uv_prefix = 'radvani_template'):
     # create root folder for UV labels
     if UV_label_root is None:
         UV_label_root=dataset.root_dir.replace('_washed', 
-                '_UV_map_{}'.format(uv_prefix[:-9])
+                '_UV_map_{}'.format(uv_prefix[:-9]))
     
     if not os.path.isdir(UV_label_root):
         os.makedirs(UV_label_root)
