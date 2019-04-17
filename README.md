@@ -3,28 +3,27 @@ PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org
 
 ![paper teaser](teaser/teaser.jpg)
 
-### Data Preparation
-Please follow the instructions [`PREPS.md`](PREPS.md) to prepare your training dataset and UV maps.
+### Reproduction results
 
-### Network Architecture
+Here is the reproduction result (left: input image; middle: ground truth UV position map; right: estimated UV position map)
 
-Current experiments features 6 ConvRes blocks with stride 2 and 2 fc layers for the encoder. The structure of the decoder is symmetric with that of the encoder, with 2 fc layers following by 6 consecutive conv and upsample layers and a final `Tanh()` to get the output UV position map. The following picture showcases the result (Only 3 conv layers are drawn).
-
-![net_arch](teaser/net_arch.png)
-
-Training after 40 epochs yields following result:
-
-![result](teaser/040_00999.png)
-
-And here's the resampled body mesh shown in point cloud:
-
-![result](teaser/recon_mesh.PNG)
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/33449901/56275710-cce07800-6133-11e9-9507-cfc347a51006.png" width="800px" />
+</div>
 
 ### Update Notes
-
+- SMPL official UV map is now supported! Please checkout [`PREPS.md`](PREPS.md) for details.
 - Code reformating complete! Please refer to `data_utils/UV_map_generator.py` for more details.
 - Thanks [Raj Advani](https://github.com/radvani) for providing new hand crafted UV maps!
-- For those who already forked my project, the original code is now temporarily hosted in the `legacy` branch, and will be removed after the code reformatting is complete.
+
+### Training Guidelines
+Please follow the instructions [`PREPS.md`](PREPS.md) to prepare your training dataset and UV maps. Then run `train.sh` or `nohup_train.sh` to begin training. 
+
+### Customizations
+
+To train with your own UV map, checkout [`UV_MAPS.md`](UV_MAPS.md) for detailed instructions.
+
+To explore different network architectures, checkout [`NETWORKS.md`](NETWORKS.md) for detailed instructions.
 
 ### TODO List
 - [x] Creating ground truth UV position maps for Human36m dataset.
@@ -36,45 +35,25 @@ And here's the resampled body mesh shown in point cloud:
         - [x] Validity checked with minor artifacts (see results below)
         - [x] Making UV_map generation module a separate class.
     - [x] [20190413]() Prepare ground truth UV maps for washed dataset.
+    - [x] [20190417]() SMPL official UV map supported!
     
 - [x] Prepare baseline model training
     - [x] [20190414]() Network design, configs, trainer and dataloader
     - [x] [20190414]() Baseline complete with first-hand results. Something issue still needs to be addressed.
+    - [x] [Proceeding]() Testing with different networks. (ResNet tested, VGG is now set)
     - [ ] Testing with several new loss functions.
-    - [ ] Testing with different networks.
- 
+    
 - [ ] Report 3D reconstruction results.
     - [ ] Setup evaluation protocal and MPJPE-PA metrics.
 
-
-### Current Progress
-Finish UV texture map processing. Here's the result:
-
-![UV_map](teaser/radvani_template_atlas.png)
-
-Align SMPL meshes with input images. Here are some results:
-
-![Ground Truth Image](teaser/im_gt_0.png)
-![Aligned Mesh Image](teaser/im_mask_0.png)
-![Generated UV map](teaser/UV_position_map_0.png)
-
-![Ground Truth Image](teaser/im_gt_1.png)
-![Aligned Mesh Image](teaser/im_mask_1.png)
-![Generated UV map](teaser/UV_position_map_1.png)
-
-Reconstruct human mesh through resampling. Here are some results.
-
-![Original Mesh](teaser/original_mesh_0.PNG)
-![Reconstructed Mesh](teaser/resampled_mesh_0.PNG)
-
-![Original Mesh](teaser/original_mesh_1.PNG)
-![Reconstructed Mesh](teaser/resampled_mesh_1.PNG)
-
+### Authors
+**[Lingbo Yang(Lotayou)](https://github.com/Lotayou)**: Owner and maintainer of this repo.
+**[Raj Advani(radvani)](https://github.com/radvani)**: Provide several hand-crafted UV maps and many constructive feedbacks.
 
 ### Citation
 Please consider citing the following paper if you find this project useful.
 
 [DenseBody: Directly Regressing Dense 3D Human Pose and Shape From a Single Color Image](https://arxiv.org/abs/1903.10153v3)
 
-### Disclaimer
-Please note that this is an unofficial implementation free for non-commercial usage only. For commercial cooperation please contact the original authors.
+### Acknowledgements
+The network training part is inspired by [BicycleGAN](https://github.com/junyanz/BicycleGAN)

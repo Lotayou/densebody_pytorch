@@ -1,4 +1,4 @@
-# Prepare Datasets and UV map labels
+# Prepare Datasets and UV map Labels
 
 ### Prerequisites
 ```
@@ -11,6 +11,8 @@ tqdm
 chumpy (For converting SMPL model to basic numpy arrays)
 h5py (For processing Human36m annotations)
 ```
+
+Make sure you have an GPU card with at least 12 GB graphic memory. You can decrease batch size too, but the performance is not guaranteed.
 
 (Optional) Linux users are encouraged to install [torch-batched-svd](https://github.com/KinglittleQ/torch-batch-svd) for speedup.
 
