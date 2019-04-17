@@ -10,12 +10,14 @@ Current experiments features 6 ConvRes blocks with stride 2 and 2 fc layers for 
 ![net_arch](teaser/net_arch.png)
 
 Training after 40 epochs yields following result:
-<div align="center>
+
+<div align="center">
     <img src="https://user-images.githubusercontent.com/33449901/56278589-167f9180-6139-11e9-9b86-e14a68bfc7a5.png" width="800px" />
 </div>
+
 And here's the resampled body mesh shown in point cloud:
 
-<div align="center>
+<div align="center">
     <img src="https://user-images.githubusercontent.com/33449901/56278598-1a131880-6139-11e9-9cfa-6e3001ddf1e4.PNG" width="400px" />
 </div>
 
