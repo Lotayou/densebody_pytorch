@@ -1,6 +1,6 @@
 # Use your own networks
 
-Although the paper states that networks choice doesn't really affects the final results. We do observe some differences when training with different networks, with same dataset and same UV mapping. Currently we believe that network architectures could affect the learning dynamics and the speed/accuracy tradeoff. 
+Although the paper states that networks choice doesn't really affects the final results, we do observe some differences when training with different networks, with same dataset and same UV mapping. Currently we believe that network architectures could affect the learning dynamics and the speed/accuracy tradeoff. 
 Therefore, we detail the architectures of our baseline network here as a reference, and we encourage users to explore different networks. Feel free to open an issue or pull-request of your results.
 
 ### The Baseline Network
@@ -11,12 +11,12 @@ Current experiments features 6 ConvRes blocks with stride 2 and 2 fc layers for 
 
 Training after 40 epochs yields following result:
 <div align="center>
-    ![result](teaser/040_00999.png)
+    <img src="https://user-images.githubusercontent.com/33449901/56278589-167f9180-6139-11e9-9b86-e14a68bfc7a5.png" width="800px" />
 </div>
 And here's the resampled body mesh shown in point cloud:
 
 <div align="center>
-    ![result](teaser/recon_mesh.PNG)
+    <img src="https://user-images.githubusercontent.com/33449901/56278598-1a131880-6139-11e9-9cfa-6e3001ddf1e4.PNG" width="400px" />
 </div>
 
 ### Use your own network
