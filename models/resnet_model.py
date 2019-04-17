@@ -23,8 +23,10 @@ class ResNetModel(BaseModel):
             norm = opt.norm, nl=opt.nl, init_type=opt.init_type, device=self.device)
         
         if opt.phase == 'train':
-            self.L1_loss = networks.WeightedL1Loss(opt.uv_map, self.device)  # requires a weight npy
-            self.TV_loss = networks.TotalVariationLoss(opt.uv_map, self.device)
+            self.L1_loss = networks.WeightedL1Loss(opt.uv_prefix, self.device)  # requires a weight npy
+            self.TV_loss = networks.TotalVariationLoss(opt.uv_prefix, self.device)
+            self.encoder.train()
+            self.decoder.train()
             
             self.optimizers = []
             self.optimizer_enc = torch.optim.Adam(self.encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -45,7 +47,7 @@ class ResNetModel(BaseModel):
         self.fake_UV = self.decoder(self.encoder(self.real_input))
         l1_loss = self.L1_loss(self.fake_UV, self.real_UV)
         tv_loss = self.TV_loss(self.fake_UV)
-        total_loss = l1_loss + self.opt.tv_weight * tv_loss
+        total_loss = l1_loss #+ self.opt.tv_weight * tv_loss
         
         self.optimizer_enc.zero_grad()
         self.optimizer_dec.zero_grad()

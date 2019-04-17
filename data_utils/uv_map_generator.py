@@ -420,6 +420,8 @@ if __name__ == '__main__':
     # test render module
     # change this to the same as in train.py opt.uv_prefix
     file_prefix = 'radvani_template'
+    #file_prefix = 'vbml_close_template'
+    #file_prefix = 'vbml_spaced_template'
     generator = UV_Map_Generator(
         UV_height=256,
         UV_pickle=file_prefix+'.pickle'
@@ -436,4 +438,4 @@ if __name__ == '__main__':
     print(uv.shape)
     binary_mask = np.where(uv > 0, 1., 0.)
     binary_mask = (binary_mask * 255).astype(np.uint8)
-    imsave('radvani_UV_mask.png'.format(file_prefix), binary_mask)
+    imsave('{}_UV_mask.png'.format(file_prefix), binary_mask)

@@ -109,6 +109,7 @@ checkpoints/
 results/
 data_utils/_test_cache*/
 *.obj
+*.out
 !data_utils/SMPL_template_UV_map.obj
 *.pth
 *.pkl
@@ -117,5 +118,4 @@ data_utils/_test_cache*/
 *.pickle
 *.zip
 *idea/
-*_unit_test.py
 data_utils/_test*/
