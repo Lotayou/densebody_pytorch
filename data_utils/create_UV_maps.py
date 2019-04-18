@@ -101,7 +101,7 @@ def visualize(folder, imagenames, mesh_2d, joints_2d, root=None):
     
 def create_UV_maps(UV_label_root=None, uv_prefix = 'radvani_template'):
     if platform == 'linux':
-        os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+        os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     
     data_type = torch.float32
     device=torch.device('cuda')
@@ -197,8 +197,8 @@ def create_UV_maps(UV_label_root=None, uv_prefix = 'radvani_template'):
 if __name__ == '__main__':
     # Please make sure the prefix is the same as in train.py opt.uv_prefix
     # prefix = 'radvani_template'
-    prefix = 'vbml_close_template'
-    # prefix = 'vbml_spaced_template'
+    # prefix = 'vbml_close_template'
+    prefix = 'vbml_spaced_template'
     create_UV_maps(uv_prefix=prefix)
     # create_UV_maps(uv_prefix='radvani_new_template')
     # create_UV_maps(uv_prefix='smpl_fbx_template')

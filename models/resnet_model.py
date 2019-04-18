@@ -34,6 +34,9 @@ class ResNetModel(BaseModel):
             
             self.optimizer_dec = torch.optim.Adam(self.decoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizers.append(self.optimizer_dec)
+        else:
+            self.encoder.eval()
+            self.decoder.eval()
     
     def set_input(self, input):
         self.real_input = input['im_data']
