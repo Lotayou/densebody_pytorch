@@ -18,8 +18,12 @@ class Visualizer():
             model_path = './model_lsp.pkl',
         )
         os.chdir(opt.project_root)
-        
-        self.save_root = '{}/{}/visuals/'.format(opt.checkpoints_dir, opt.name)
+        if opt.phase == 'train':
+            self.save_root = '{}/{}/visuals/'.format(opt.checkpoints_dir, opt.name)
+        elif opt.phase == 'test':
+            self.save_root = '{}/{}/visuals/'.format(opt.results_dir, opt.name)
+        else:
+            self.save_root = '{}/{}/{}_in_the_wild/'.format(opt.results_dir, opt.name, opt.dataset)
         if not os.path.isdir(self.save_root):
             os.makedirs(self.save_root)
     

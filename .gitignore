@@ -117,5 +117,7 @@ data_utils/_test_cache*/
 *.npy
 *.pickle
 *.zip
+*.bak
 *idea/
 data_utils/_test*/
+data_utils/*.png
