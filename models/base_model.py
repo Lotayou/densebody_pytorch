@@ -25,7 +25,9 @@ class BaseModel():
         self.print_networks(opt.verbose)
 
     def set_input(self, input):
-        self.input = input
+        self.real_input = input['im_data']
+        if not self.opt.phase == 'in_the_wild':
+            self.real_UV = input['uv_data']
 
     def forward(self):
         pass

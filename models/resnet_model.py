@@ -38,10 +38,6 @@ class ResNetModel(BaseModel):
             self.encoder.eval()
             self.decoder.eval()
     
-    def set_input(self, input):
-        self.real_input = input['im_data']
-        self.real_UV = input['uv_data']
-    
     '''
         forward: Train one step, return loss calues
     '''
@@ -66,9 +62,10 @@ class ResNetModel(BaseModel):
     
     def get_current_visuals(self):
         # return: real image, real UV maps fake UV maps
-        return {
+        visuals = {
             'real_image': self.real_input[0],
-            'real_UV': self.real_UV[0],
             'fake_UV': self.fake_UV[0]
         }
-        
+        if not self.opt.phase == 'in_the_wild':
+            visuals['real_UV'] = self.real_UV[0]
+        return visuals 

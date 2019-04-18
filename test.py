@@ -25,7 +25,7 @@ def TestOptions(debug=False):
     parser.add_argument('--data_root', type=str, default=data_root)
     parser.add_argument('--checkpoints_dir', type=str, default='checkpoints')
     parser.add_argument('--dataset', type=str, default='human36m',
-        choices=['human36m', 'surreal', 'up3d'])
+        choices=['human36m', 'surreal', 'up3d', 'nturgbd'])
     parser.add_argument('--max_dataset_size', type=int, default=-1)
     parser.add_argument('--im_size', type=int, default=256)
     parser.add_argument('--batch_size', type=int, default=batch_size)
@@ -46,7 +46,7 @@ def TestOptions(debug=False):
 
     # testing options
     parser.add_argument('--results_dir', type=str, default='results')
-    parser.add_argument('--phase', type=str, default='test', choices=['train', 'test'])
+    parser.add_argument('--phase', type=str, default='test', choices=['test', 'in_the_wild'])
     parser.add_argument('--continue_train', action='store_true')
     parser.add_argument('--load_epoch', type=int, default=0)
     
@@ -64,7 +64,8 @@ if __name__ == '__main__':
         os.environ['CUDA_VISIBLE_DEVICES'] = '2'
     
     opt = TestOptions(debug=False)
-    dataset = DenseBodyDataset(data_root=opt.data_root, uv_map=opt.uv_map, max_size=opt.max_dataset_size)
+    dataset = DenseBodyDataset(data_root=opt.data_root, dataset_name=opt.dataset, 
+            uv_map=opt.uv_map, max_size=opt.max_dataset_size, phase=opt.phase)
     batchs_per_epoch = len(dataset) // opt.batch_size # drop last batch
     print('#testing images = %d' % len(dataset))
 
