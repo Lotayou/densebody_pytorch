@@ -42,14 +42,15 @@ To explore different network architectures, checkout [`NETWORKS.md`](NETWORKS.md
 - [x] Prepare baseline model training
     - [x] [20190414]() Network design, configs, trainer and dataloader
     - [x] [20190414]() Baseline complete with first-hand results. Something issue still needs to be addressed.
-    - [x] [Proceeding]() Testing with different networks. (ResNet tested, VGG is now set)
+    - [x] [20190420]() Testing with different UV maps.
     - [ ] Testing with several new loss functions.
     
 - [ ] Report 3D reconstruction results.
     - [ ] Setup evaluation protocal and MPJPE-PA metrics.
 
 ### Authors
-**[Lingbo Yang(Lotayou)](https://github.com/Lotayou)**: Owner and maintainer of this repo.
+**[Lingbo Yang(Lotayou)](https://github.com/Lotayou)**: The owner and maintainer of this repo.
+
 **[Raj Advani(radvani)](https://github.com/radvani)**: Provide several hand-crafted UV maps and many constructive feedbacks.
 
 ### Citation
