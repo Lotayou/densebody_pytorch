@@ -1,5 +1,9 @@
 # densebody_pytorch
-PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org/abs/1903.10153v3)
+PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org/abs/1903.10153v3).
+
+**Note**: For most recent updates, please check out the `dev` branch.
+
+**Update on 20190613** A toy dataset has been released to facilitate the reproduction of this project. checkout [`PREPS.md`](PREPS.md) for details.
 
 ![paper teaser](teaser/teaser.jpg)
 
@@ -36,15 +40,12 @@ To explore different network architectures, checkout [`NETWORKS.md`](NETWORKS.md
         - [x] Making UV_map generation module a separate class.
     - [x] [20190413]() Prepare ground truth UV maps for washed dataset.
     - [x] [20190417]() SMPL official UV map supported!
+    - [x] [20190613]() A testing toy dataset has been released!
     
 - [x] Prepare baseline model training
     - [x] [20190414]() Network design, configs, trainer and dataloader
     - [x] [20190414]() Baseline complete with first-hand results. Something issue still needs to be addressed.
     - [x] [20190420]() Testing with different UV maps.
-    - [ ] Testing with several new loss functions.
-    
-- [ ] Report 3D reconstruction results.
-    - [ ] Setup evaluation protocal and MPJPE-PA metrics.
 
 ### Authors
 **[Lingbo Yang(Lotayou)](https://github.com/Lotayou)**: The owner and maintainer of this repo.
