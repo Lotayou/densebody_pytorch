@@ -19,7 +19,7 @@ Make sure you have an GPU card with at least 12 GB graphic memory. You can decre
 ### Prepare dataset
 We hereby datail the necessary steps to reproduce human36m experiments. Most people failed on this step, so I hope this instruction could make sure you don't become one of them.
 
-1. Download human36m dataset from the [official website](http://vision.imar.ro/human3.6m/description.php)
+1. I tentatively suggest users to first try download human36m dataset from the [official website](http://vision.imar.ro/human3.6m/description.php). However manual authorization could take anywhere from 6 days to 6 months, so if you are keen to get things going, you can start by playing with this [toy_dataset](https://pan.baidu.com/s/1szhb9B_8n6p6CeAoPUxnhw). Extraction code: 0o95 
 
 2. Unpack downloaded zip files into a single folder (which I suggest you name it `human36m`) and put it under `path-to-your-datasets`. 
 Open `data_utils/data_washing.py`, change the `root_dir` variable in main function near line 190 to your h36m dataset path and run it to perform standard data augmentations, the washed dataset will be stored in `path-to-your-datasets/human36m_washed`.
