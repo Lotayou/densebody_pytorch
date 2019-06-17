@@ -34,7 +34,7 @@ If you are interested, you can also try with [radvani's UV map](https://github.c
 
 4. After you acquired the converted .obj file, put it under `data_utils` and rename it as `'{}_template.obj'.format(opt.uv_map)` where options can be found in `train.py` (default is `radvani`). Run `data_utils/uv_map_generator.py` to calculate barycentric interpolation weights and other necessary caching informations. This could take 8~10 minutes.
 
-5. Processing SMPL model with `data_utils/preprocess_smpl.py`. You can also check the instructions [here](https://github.com/Lotayou/SMPL).
+5. Processing SMPL model with `data_utils/preprocess_smpl.py`. You can also check the instructions [here](https://github.com/Lotayou/SMPL) and [here](https://yadi.sk/d/vbxzaikms7y4pg).
 
 6. Run `data_utils/create_UV_maps` to create UV labels. This takes 5 hours on my PC, you can monitor the progress through tqdm info. The processed UV maps will be stored at `path-to-your-datasets/human36m_UV_map_{}` where `{}` again is `opt.uv_map`.
 
