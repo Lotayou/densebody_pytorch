@@ -23,10 +23,8 @@ def TrainOptions(debug=False):
     
     parser.add_argument('--data_root', type=str, default=data_root)
     parser.add_argument('--checkpoints_dir', type=str, default='checkpoints')
-    parser.add_argument('--dataset', type=str, default='human36m',
-        choices=['human36m', 'surreal', 'up3d'])
     parser.add_argument('--max_dataset_size', type=int, default=-1)
-    parser.add_argument('--im_size', type=int, default=256)
+    parser.add_argument('--im_size', type=int, default=512)
     parser.add_argument('--batch_size', type=int, default=batch_size)
     parser.add_argument('--name', type=str, default='densebody_resnet_h36m')
     parser.add_argument('--uv_map', type=str, default='radvani', choices=['radvani', 'vbml_close', 'vbml_spaced', 'smpl_fbx'])
