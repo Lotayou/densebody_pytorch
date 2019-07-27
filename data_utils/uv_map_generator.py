@@ -371,7 +371,7 @@ class UV_Map_Generator():
     UV_map: [H * W * 3] Interpolated UV map.
     colored_verts: [H * W * 3] Scatter plot of colorized UV vertices
     '''
-    def get_UV_map(self, verts):
+    def get_UV_map(self, verts, dilate=True):
         # normalize all to [0,1]
         _min = np.amin(verts, axis=0, keepdims=True)
         _max = np.amax(verts, axis=0, keepdims=True)
@@ -383,8 +383,10 @@ class UV_Map_Generator():
         ])
         rgbs = verts[vt_to_v_index]
         
-        #return self.UV_interp(rgbs), verts_backup
-        return self._dilate(self.UV_interp(rgbs)), verts_backup
+        uv_map = self.UV_interp(rgbs)
+        if dilate:
+            uv_map = self._dilate(uv_map)
+        return uv_map, verts_backup
     
     '''
         TODO: make it torch.
@@ -419,23 +421,24 @@ class UV_Map_Generator():
 if __name__ == '__main__':
     # test render module
     # change this to the same as in train.py opt.uv_prefix
-    file_prefix = 'radvani_template'
+    # file_prefix = 'radvani_template'
     #file_prefix = 'vbml_close_template'
     #file_prefix = 'vbml_spaced_template'
+    file_prefix = 'smpl_fbx_template'
     generator = UV_Map_Generator(
-        UV_height=256,
+        UV_height=512,
         UV_pickle=file_prefix+'.pickle'
     )
-    test_folder = '_test_radvani'
+    test_folder = 'smpl_512'
     if not os.path.isdir(test_folder):
         os.makedirs(test_folder)
         
     generator.render_UV_atlas('{}/{}_atlas.png'.format(test_folder, file_prefix))
     img, verts, rgbs = generator.render_point_cloud('{}/{}.png'.format(test_folder, file_prefix))
     verts, rgbs = generator.write_ply('{}/{}.ply'.format(test_folder, file_prefix), verts, rgbs)
-    uv, _ = generator.get_UV_map(verts)
+    uv, _ = generator.get_UV_map(verts, dilate=False)
     uv = uv.max(axis=2)
     print(uv.shape)
     binary_mask = np.where(uv > 0, 1., 0.)
     binary_mask = (binary_mask * 255).astype(np.uint8)
-    imsave('{}_UV_mask.png'.format(file_prefix), binary_mask)
+    imsave('./{}_UV_mask.png'.format(file_prefix), binary_mask)

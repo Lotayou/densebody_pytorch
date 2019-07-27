@@ -5,6 +5,9 @@ PyTorch implementation of CloudWalk's recent paper [DenseBody](https://arxiv.org
 
 **Update on 20190613** A toy dataset has been released to facilitate the reproduction of this project. checkout [`PREPS.md`](PREPS.md) for details.
 
+**Update on 20190727** Update an alternative [link](https://drive.google.com/open?id=1ssuUje20x1PS5qYwbg1AAloDsVwF1eTW) for the toy dataset.
+
+
 ![paper teaser](teaser/teaser.jpg)
 
 ### Reproduction results

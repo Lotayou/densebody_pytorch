@@ -118,7 +118,8 @@ def acquire_weights(UV_weight_npy):
         mask_name = UV_weight_npy.replace('weights.npy', 'mask.png')
         print(mask_name)
         UV_mask = imread(mask_name)
-        UV_mask = UV_mask[:,:,0]
+        if UV_mask.ndim == 3:
+            UV_mask = UV_mask[:,:,0]
         ret, labels = connectedComponents(UV_mask, connectivity=4)
         unique, counts = np.unique(labels, return_counts=True)
         print(unique, counts)
@@ -404,5 +405,5 @@ class ConvUpSampleDecoder(nn.Module):
         return self.conv(x)
     
 if __name__ == '__main__':
-    acquire_weights('../data_utils/radvani_UV_weights.npy')
+    acquire_weights('../data_utils/smpl_fbx_template_UV_weights.npy')
     
